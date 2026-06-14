@@ -54,6 +54,33 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // --- Helper: Build the base URL for WordPress search results ---
+    function getSearchPageUrl(term) {
+        const base = (typeof hamsedaSearchSettings !== 'undefined' && hamsedaSearchSettings.search_url)
+            ? hamsedaSearchSettings.search_url
+            : '/';
+        // Append ?s=term — works with both plain and pretty permalinks.
+        return base + '?s=' + encodeURIComponent(term);
+    }
+
+    // --- Helper: Render "View all results" footer link ---
+    function renderViewAllLink(term) {
+        const url = getSearchPageUrl(term);
+        return `
+            <a href="${escapeHTML(url)}"
+               id="hamseda-view-all-link"
+               class="view-all-link flex items-center justify-center gap-2 mt-3 pt-3 border-t border-gray-100 text-sm font-medium text-[#5977BF] hover:text-[#1F3161] transition-colors duration-150 group">
+                <svg class="w-4 h-4 transition-transform duration-150 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                نمایش همه نتایج برای «${escapeHTML(term)}»
+                <svg class="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+        `;
+    }
+
     // Helper: Format price with thousands separators
     function formatPrice(priceStr) {
         if (!priceStr) return '';
@@ -190,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loader.classList.add('hidden');
 
             if (data.success && data.data && (data.data.posts || data.data.categories)) {
-                renderSearchResults(data.data, resultsContainer, categoriesWrapper, categoriesContainer, postsWrapper, postsContainer, noResults);
+                renderSearchResults(data.data, resultsContainer, categoriesWrapper, categoriesContainer, postsWrapper, postsContainer, noResults, term);
             } else {
                 showError(resultsContainer, noResults);
             }
@@ -230,13 +257,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderSearchResults(data, resultsContainer, categoriesWrapper, categoriesContainer, postsWrapper, postsContainer, noResults) {
+    function renderSearchResults(data, resultsContainer, categoriesWrapper, categoriesContainer, postsWrapper, postsContainer, noResults, currentTerm) {
         // Sort posts client-side as well (categories always appear first in layout)
         const posts = sortPostsByType(data.posts || []);
         const categories = data.categories || [];
 
         resultsContainer.classList.remove('hidden');
         resultsContainer.style.display = 'flex';
+
+        // Remove any previously rendered "view all" footer.
+        const existingViewAll = resultsContainer.parentElement
+            ? resultsContainer.parentElement.querySelector('#hamseda-view-all-link')
+            : null;
+        if (existingViewAll) existingViewAll.remove();
 
         if (posts.length === 0 && categories.length === 0) {
             if (categoriesWrapper) {
@@ -288,6 +321,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 postsWrapper.style.display = 'none';
             }
         }
+
+        // Append "View all results" link after the scrollable results area.
+        if (currentTerm) {
+            resultsContainer.insertAdjacentHTML('afterend', renderViewAllLink(currentTerm));
+        }
     }
 
     // --- Desktop Event Listeners ---
@@ -301,6 +339,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 desktopResults.classList.add('hidden');
                 desktopDropdown.classList.add('hidden');
+                // Also remove any stale "view all" footer.
+                const old = desktopDropdown.querySelector('#hamseda-view-all-link');
+                if (old) old.remove();
             }
         });
 
@@ -309,6 +350,8 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleClear(desktopInput, desktopClearBtn);
             desktopDropdown.classList.add('hidden');
             desktopResults.classList.add('hidden');
+            const old = desktopDropdown.querySelector('#hamseda-view-all-link');
+            if (old) old.remove();
             desktopInput.focus();
         });
 
@@ -357,5 +400,55 @@ document.addEventListener('DOMContentLoaded', () => {
             mobileInput.focus();
         });
     }
+
+    // =========================================================
+    // Keyboard Shortcuts
+    // =========================================================
+    /**
+     * Helper: decide whether focus should open the search UI.
+     * We must not intercept shortcuts when the user is already
+     * typing inside any input, textarea or contenteditable.
+     */
+    function isTypingElsewhere() {
+        const el = document.activeElement;
+        if (!el) return false;
+        const tag = el.tagName.toUpperCase();
+        return (
+            tag === 'INPUT' ||
+            tag === 'TEXTAREA' ||
+            tag === 'SELECT' ||
+            el.isContentEditable
+        );
+    }
+
+    /**
+     * Open the search UI appropriate for the current viewport.
+     * Desktop: focus the visible desktop input.
+     * Mobile:  trigger the mobile modal.
+     */
+    function openSearch() {
+        // Check if the desktop input is visible (md+ breakpoint).
+        if (desktopInput && desktopInput.offsetParent !== null) {
+            desktopInput.focus();
+            desktopInput.select();
+        } else if (mobileTrigger) {
+            mobileTrigger.click();
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+K or Cmd+K — universally recognised "open search" shortcut.
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            openSearch();
+            return;
+        }
+
+        // "/" — focus search when not already typing somewhere else.
+        if (e.key === '/' && !isTypingElsewhere()) {
+            e.preventDefault();
+            openSearch();
+        }
+    });
 
 });

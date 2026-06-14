@@ -11,6 +11,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 class HamSeda_Search_Query {
 
 	/**
+	 * Constructor.
+	 * Registers hooks to automatically invalidate the taxonomy search cache
+	 * whenever a term is created, updated, or deleted.
+	 */
+	public function __construct() {
+		// Fires after any term is added or updated (covers create + edit).
+		add_action( 'saved_term', array( $this, 'invalidate_taxonomy_cache' ), 10, 3 );
+		// Fires after a term is permanently deleted.
+		add_action( 'deleted_term', array( $this, 'invalidate_taxonomy_cache' ), 10, 3 );
+	}
+
+	/**
+	 * Purge all hamseda taxonomy-search transients from the database.
+	 *
+	 * Called automatically when any term is saved or deleted so that stale
+	 * cached results never hide newly added (or removed) categories from users.
+	 *
+	 * The $term_id, $tt_id and $taxonomy parameters are supplied by WordPress
+	 * but are not needed here because we clear the entire cache group.
+	 *
+	 * @param int    $term_id  Term ID.
+	 * @param int    $tt_id    Term taxonomy ID.
+	 * @param string $taxonomy Taxonomy slug.
+	 * @return void
+	 */
+	public function invalidate_taxonomy_cache( $term_id, $tt_id, $taxonomy ) {
+		global $wpdb;
+
+		$wpdb->query(
+			"DELETE FROM {$wpdb->options}
+			 WHERE option_name LIKE '_transient_hamseda_tax_search_%'
+			    OR option_name LIKE '_transient_timeout_hamseda_tax_search_%'"
+		);
+	}
+
+	/**
 	 * Execute search query based on search term.
 	 *
 	 * @param string $search_term The search keyword.
@@ -241,14 +277,104 @@ class HamSeda_Search_Query {
 	}
 
 	/**
+	 * Calculate a relevance score for a term against the search query.
+	 * Higher score = more relevant result.
+	 *
+	 * Scoring rules:
+	 *  5 — Exact match (normalized names are identical)
+	 *  4 — Term name starts with the full search term
+	 *  3 — Term name contains the full search term
+	 *  2 — Term name starts with any individual search word
+	 *  1 — Term name contains any individual search word
+	 *  0 — No recognisable match (fallback)
+	 *
+	 * @param WP_Term $term        The taxonomy term to score.
+	 * @param string  $search_term Normalized search input.
+	 * @return int Relevance score (higher = more relevant).
+	 */
+	private function get_term_relevance_score( $term, $search_term ) {
+		$term_name   = mb_strtolower( $this->normalize_persian_text( $term->name ) );
+		$search_term = mb_strtolower( $search_term );
+
+		// Exact match
+		if ( $term_name === $search_term ) {
+			return 5;
+		}
+
+		// Starts with full term
+		if ( mb_strpos( $term_name, $search_term ) === 0 ) {
+			return 4;
+		}
+
+		// Contains full term anywhere
+		if ( mb_strpos( $term_name, $search_term ) !== false ) {
+			return 3;
+		}
+
+		// Per-word checks (for multi-word queries)
+		$words = explode( ' ', $search_term );
+		foreach ( $words as $word ) {
+			$word = trim( $word );
+			if ( mb_strlen( $word ) < 3 ) {
+				continue;
+			}
+			if ( mb_strpos( $term_name, $word ) === 0 ) {
+				return 2;
+			}
+			if ( mb_strpos( $term_name, $word ) !== false ) {
+				return 1;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Run a single get_terms query for a given search variant.
+	 *
+	 * @param string $variant           The search variant string.
+	 * @param array  $enabled_taxonomies Taxonomies to search within.
+	 * @param int    $limit             Maximum number of terms to return.
+	 * @return array Array of WP_Term objects.
+	 */
+	private function run_term_query( $variant, $enabled_taxonomies, $limit = 20 ) {
+		$this->current_category_search_term = $variant;
+		$this->current_search_taxonomies    = $enabled_taxonomies;
+
+		add_filter( 'terms_clauses', array( $this, 'custom_terms_clauses' ), 10, 3 );
+
+		$terms = get_terms( array(
+			'taxonomy'   => $enabled_taxonomies,
+			'hide_empty' => false,
+			'search'     => $variant,
+			'number'     => $limit,
+		) );
+
+		remove_filter( 'terms_clauses', array( $this, 'custom_terms_clauses' ), 10 );
+
+		$this->current_category_search_term = '';
+		$this->current_search_taxonomies    = array();
+
+		return ( ! is_wp_error( $terms ) && ! empty( $terms ) ) ? $terms : array();
+	}
+
+	/**
 	 * Search within all enabled taxonomies using get_terms with transient caching.
-	 * Works for any public taxonomy (custom, WooCommerce, etc.).
+	 *
+	 * Strategy (relevance-first):
+	 *  1. Search using the FULL normalised term.
+	 *  2. Score every result so the closest match comes first.
+	 *  3. Filter out any result whose score is 0 (no real match).
+	 *  4. Only fall back to individual-word variants when the full-term search
+	 *     returns fewer than the requested limit.
+	 *
+	 * This prevents "خودکار" from returning every category that contains "کار".
 	 *
 	 * @param string $search_term The search keyword.
-	 * @return array Array of matching WP_Term objects with taxonomy info.
+	 * @return array Array of matching WP_Term objects sorted by relevance.
 	 */
 	public function search_product_categories( $search_term ) {
-		$options = get_option( 'hamseda_search_settings', array() );
+		$options            = get_option( 'hamseda_search_settings', array() );
 		$enabled_taxonomies = array();
 
 		if ( ! empty( $options ) && isset( $options['taxonomies'] ) && is_array( $options['taxonomies'] ) ) {
@@ -259,12 +385,13 @@ class HamSeda_Search_Query {
 			}
 		}
 
-		// No taxonomies enabled — return empty
+		// No taxonomies enabled — return empty.
 		if ( empty( $enabled_taxonomies ) ) {
 			return array();
 		}
 
 		$normalized_term = $this->normalize_persian_text( $search_term );
+		$max_results     = 8;
 
 		$cache_key    = 'hamseda_tax_search_' . md5( $normalized_term . implode( '|', $enabled_taxonomies ) );
 		$cached_terms = get_transient( $cache_key );
@@ -273,72 +400,104 @@ class HamSeda_Search_Query {
 			return $cached_terms;
 		}
 
-		// Build a list of search variants to cover multi-word input.
-		// e.g. "تست های" → [ "تست های", "تستهای", "تست", "های" ]
-		$search_variants = array( $normalized_term );
-
-		// Space-stripped compound form (e.g. "تست های" → "تستهای")
-		$stripped = str_replace( ' ', '', $normalized_term );
-		if ( $stripped !== $normalized_term && ! in_array( $stripped, $search_variants, true ) ) {
-			$search_variants[] = $stripped;
-		}
-
-		// Individual words (only words with 3+ characters)
-		$words = explode( ' ', $normalized_term );
-		if ( count( $words ) > 1 ) {
-			foreach ( $words as $word ) {
-				$word = trim( $word );
-				if ( mb_strlen( $word ) >= 3 && ! in_array( $word, $search_variants, true ) ) {
-					$search_variants[] = $word;
-				}
-			}
-		}
-
-		$merged_terms = array();
+		/* ------------------------------------------------------------------ *
+		 * PHASE 1 — Search with the complete (normalised) term.               *
+		 * ------------------------------------------------------------------ */
+		$raw_terms     = $this->run_term_query( $normalized_term, $enabled_taxonomies, $max_results * 3 );
+		$scored_terms  = array();
 		$seen_term_ids = array();
 
-		foreach ( $search_variants as $variant ) {
-			// Store context for the filter
-			$this->current_category_search_term = $variant;
-			$this->current_search_taxonomies    = $enabled_taxonomies;
+		foreach ( $raw_terms as $term ) {
+			$score = $this->get_term_relevance_score( $term, $normalized_term );
 
-			// Hook terms_clauses filter
-			add_filter( 'terms_clauses', array( $this, 'custom_terms_clauses' ), 10, 3 );
-
-			$args = array(
-				'taxonomy'   => $enabled_taxonomies,
-				'hide_empty' => false,
-				'search'     => $variant,
-				'number'     => 8,
-			);
-
-			$terms = get_terms( $args );
-
-			// Unhook immediately
-			remove_filter( 'terms_clauses', array( $this, 'custom_terms_clauses' ), 10 );
-
-			// Reset context
-			$this->current_category_search_term = '';
-			$this->current_search_taxonomies    = array();
-
-			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
-				foreach ( $terms as $term ) {
-					if ( ! in_array( $term->term_id, $seen_term_ids, true ) ) {
-						$merged_terms[]  = $term;
-						$seen_term_ids[] = $term->term_id;
-					}
-				}
+			// Skip completely irrelevant results (score 0 means only an
+			// accidental DB match via a very broad LIKE wildcard).
+			if ( $score === 0 ) {
+				continue;
 			}
 
-			// Stop early if we already have enough results
-			if ( count( $merged_terms ) >= 8 ) {
-				break;
+			if ( ! in_array( $term->term_id, $seen_term_ids, true ) ) {
+				$term->_hamseda_score = $score;
+				$scored_terms[]       = $term;
+				$seen_term_ids[]      = $term->term_id;
 			}
 		}
 
-		if ( ! empty( $merged_terms ) ) {
-			set_transient( $cache_key, $merged_terms, 12 * HOUR_IN_SECONDS );
-			return $merged_terms;
+		/* ------------------------------------------------------------------ *
+		 * PHASE 2 — Also try the space-stripped compound form.                *
+		 * e.g. "تست های" → "تستهای"                                           *
+		 * ------------------------------------------------------------------ */
+		$stripped = str_replace( ' ', '', $normalized_term );
+		if ( $stripped !== $normalized_term && count( $scored_terms ) < $max_results ) {
+			$compound_terms = $this->run_term_query( $stripped, $enabled_taxonomies, $max_results * 2 );
+			foreach ( $compound_terms as $term ) {
+				if ( in_array( $term->term_id, $seen_term_ids, true ) ) {
+					continue;
+				}
+				// Score against the original term so relevance is consistent.
+				$score = $this->get_term_relevance_score( $term, $normalized_term );
+				if ( $score === 0 ) {
+					continue;
+				}
+				$term->_hamseda_score = $score;
+				$scored_terms[]       = $term;
+				$seen_term_ids[]      = $term->term_id;
+			}
+		}
+
+		/* ------------------------------------------------------------------ *
+		 * PHASE 3 — Fallback to individual words ONLY when we still have      *
+		 * fewer results than needed. This avoids polluting the results of a   *
+		 * precise single-word query (e.g. "خودکار") with unrelated terms that *
+		 * merely contain one of the letters/words.                             *
+		 * ------------------------------------------------------------------ */
+		$words = explode( ' ', $normalized_term );
+		if ( count( $words ) > 1 && count( $scored_terms ) < $max_results ) {
+			foreach ( $words as $word ) {
+				$word = trim( $word );
+				if ( mb_strlen( $word ) < 3 ) {
+					continue;
+				}
+
+				$word_terms = $this->run_term_query( $word, $enabled_taxonomies, $max_results * 2 );
+				foreach ( $word_terms as $term ) {
+					if ( in_array( $term->term_id, $seen_term_ids, true ) ) {
+						continue;
+					}
+					$score = $this->get_term_relevance_score( $term, $normalized_term );
+					if ( $score === 0 ) {
+						// For word-level fallbacks, allow score-1 terms too
+						// but only if the word itself appears in the term name.
+						$term_name = mb_strtolower( $this->normalize_persian_text( $term->name ) );
+						$word_lc   = mb_strtolower( $word );
+						if ( mb_strpos( $term_name, $word_lc ) === false ) {
+							continue;
+						}
+						$score = 1;
+					}
+					$term->_hamseda_score = $score;
+					$scored_terms[]       = $term;
+					$seen_term_ids[]      = $term->term_id;
+				}
+
+				if ( count( $scored_terms ) >= $max_results ) {
+					break;
+				}
+			}
+		}
+
+		/* ------------------------------------------------------------------ *
+		 * Sort by relevance score descending, then limit to $max_results.     *
+		 * ------------------------------------------------------------------ */
+		if ( ! empty( $scored_terms ) ) {
+			usort( $scored_terms, function( $a, $b ) {
+				return $b->_hamseda_score - $a->_hamseda_score;
+			} );
+
+			$scored_terms = array_slice( $scored_terms, 0, $max_results );
+
+			set_transient( $cache_key, $scored_terms, 12 * HOUR_IN_SECONDS );
+			return $scored_terms;
 		}
 
 		return array();

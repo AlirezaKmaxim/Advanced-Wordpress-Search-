@@ -13,10 +13,68 @@ class HamSeda_AJAX_Handler {
 	/**
 	 * Constructor.
 	 */
+	/**
+	 * Maximum number of requests allowed per time window.
+	 *
+	 * @var int
+	 */
+	const RATE_LIMIT_MAX = 30;
+
+	/**
+	 * Time window in seconds for rate limiting.
+	 *
+	 * @var int
+	 */
+	const RATE_LIMIT_WINDOW = 60;
+
 	public function __construct() {
 		// Hook AJAX handlers for logged in and guest users
 		add_action( 'wp_ajax_hamseda_global_search', array( $this, 'handle_search' ) );
 		add_action( 'wp_ajax_nopriv_hamseda_global_search', array( $this, 'handle_search' ) );
+	}
+
+	/**
+	 * Handle AJAX search request.
+	 */
+	/**
+	 * Check if the current visitor has exceeded the rate limit.
+	 *
+	 * Uses a Transient keyed by a hash of the visitor's IP address.
+	 * The sliding window is fixed: it starts on the first request and resets
+	 * only after the full window duration has elapsed.
+	 *
+	 * @return bool True if the request is allowed, false if rate-limited.
+	 */
+	private function check_rate_limit() {
+		$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
+		$key = 'hamseda_rl_' . md5( $ip );
+
+		$data = get_transient( $key );
+		$now  = time();
+
+		if ( false === $data || $data['reset_at'] <= $now ) {
+			// Start a fresh window.
+			set_transient(
+				$key,
+				array(
+					'count'    => 1,
+					'reset_at' => $now + self::RATE_LIMIT_WINDOW,
+				),
+				self::RATE_LIMIT_WINDOW + 10
+			);
+			return true;
+		}
+
+		if ( $data['count'] >= self::RATE_LIMIT_MAX ) {
+			// Limit exceeded — do NOT update the transient.
+			return false;
+		}
+
+		// Increment counter while preserving the original window expiry.
+		$data['count']++;
+		$remaining_ttl = max( 1, $data['reset_at'] - $now );
+		set_transient( $key, $data, $remaining_ttl + 10 );
+		return true;
 	}
 
 	/**
@@ -31,7 +89,15 @@ class HamSeda_AJAX_Handler {
 			);
 		}
 
-		// 2. Sanitize and retrieve the search term
+		// 2. Check Rate Limit
+		if ( ! $this->check_rate_limit() ) {
+			wp_send_json_error(
+				array( 'message' => __( 'Too many requests. Please wait a moment and try again.', 'hamseda-ajax-search' ) ),
+				429
+			);
+		}
+
+		// 3. Sanitize and retrieve the search term
 		$search_term = isset( $_POST['term'] ) ? sanitize_text_field( $_POST['term'] ) : '';
 
 		if ( empty( $search_term ) ) {

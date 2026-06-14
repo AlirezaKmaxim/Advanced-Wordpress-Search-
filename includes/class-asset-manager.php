@@ -43,8 +43,9 @@ class HamSeda_Asset_Manager {
 			'hamseda-search-js',
 			'hamsedaSearchSettings',
 			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'hamseda_search_nonce' ),
+				'ajax_url'   => admin_url( 'admin-ajax.php' ),
+				'nonce'      => wp_create_nonce( 'hamseda_search_nonce' ),
+				'search_url' => home_url( '/' ),
 			)
 		);
 

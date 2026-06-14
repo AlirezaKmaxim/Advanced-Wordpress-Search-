@@ -10,7 +10,9 @@ A premium, high-performance, fuzzy AJAX search plugin for WordPress with full Pe
 - **Product Category Search** — Searches WooCommerce product categories with 12-hour transient caching
 - **Dual Responsive UI** — Inline desktop dropdown + full-screen mobile modal with slide transition
 - **AJAX with AbortController** — Cancels stale requests to prevent race conditions
+- **Rate-Limited AJAX** — 30 requests per 60 seconds per IP to prevent abuse
 - **Debounced Input** — 400ms delay before firing search
+- **Keyboard Shortcuts** — `Ctrl+K` / `Cmd+K` and `/` to open search
 - **Animated Results** — Staggered fade-in animations and animated loading dots
 - **Nonce-Protected AJAX** — Secure search endpoints
 - **WooCommerce Integration** — Displays prices, sale badges, and stock status for products
@@ -71,12 +73,13 @@ CSS source: `assets/css/src/input.css` → Output: `assets/css/hamseda-search.cs
 ```
 hamseda-ajax-search/
 ├── hamseda-ajax-search.php          # Bootstrap & Singleton core
+├── uninstall.php                    # Cleanup on plugin deletion
 ├── includes/
+│   ├── class-admin-settings.php     # Settings page (post types, taxonomies, labels)
 │   ├── class-asset-manager.php      # CSS/JS registration & enqueuing
 │   ├── class-search-query.php       # Fuzzy WP_Query + taxonomy search
 │   ├── class-ajax-handler.php       # AJAX endpoint handler
 │   ├── class-shortcode.php          # [hamseda_ajax_search] shortcode
-│   ├── class-admin-settings.php     # Settings page (post types, taxonomies, labels)
 │   └── hamseda-icons.php            # Inline SVG icon spritesheet
 ├── templates/
 │   └── search-template.php          # Search UI HTML (desktop + mobile)
@@ -92,9 +95,9 @@ hamseda-ajax-search/
 
 1. User types in the search input
 2. Frontend JS debounces input (400ms), then POSTs to `admin-ajax.php` with action `hamseda_global_search`
-3. `HamSeda_AJAX_Handler::handle_search()` verifies nonce and sanitizes input
-4. `HamSeda_Search_Query::execute()` runs a fuzzy WP_Query across selected post types
-5. `HamSeda_Search_Query::search_product_categories()` searches categories with transient caching
+3. `HamSeda_AJAX_Handler::handle_search()` verifies nonce, checks rate limit (30 req/60s per IP), and sanitizes input
+4. `HamSeda_Search_Query::execute()` runs a fuzzy WP_Query across configured post types (from admin settings)
+5. `HamSeda_Search_Query::search_product_categories()` searches categories with transient caching and relevance scoring
 6. JSON response is returned with posts and categories
 7. Frontend JS renders results with animated entry
 

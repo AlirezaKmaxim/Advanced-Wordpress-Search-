@@ -4,7 +4,7 @@
 
 **HamSeda Ajax Search** is a WordPress plugin that provides a **premium, high-performance, fuzzy AJAX search widget** with full Persian (Farsi) language support. It enables real-time searching across multiple post types (`esanj`, `post`, `page`, `product`) with an interactive dual-interface UI (desktop dropdown + mobile modal).
 
-- **Version:** 1.0.0
+- **Version:** 2.0.8
 - **Author:** Alireza KMaxim (HamSeda.com)
 - **License:** GPL2
 - **Text Domain:** `hamseda-ajax-search`
@@ -17,7 +17,7 @@
 Advanced- Search/
 │
 ├── hamseda-ajax-search.php          # Main plugin file (bootstrap, Singleton core)
-├── context.html                     # Standalone HTML prototype/demo of the search UI
+├── uninstall.php                    # Cleanup on plugin deletion (options, transients)
 ├── package.json                     # Node.js config (Tailwind CSS build pipeline)
 ├── tailwind.config.js               # Tailwind CSS configuration
 │
@@ -32,6 +32,7 @@ Advanced- Search/
 │       └── index.php                # Directory guard
 │
 ├── includes/
+│   ├── class-admin-settings.php     # Admin settings page (post types, taxonomies, labels)
 │   ├── class-asset-manager.php      # CSS/JS registration & enqueuing
 │   ├── class-search-query.php       # WP_Query fuzzy search + category search
 │   ├── class-ajax-handler.php       # AJAX endpoint handler
@@ -55,11 +56,12 @@ Advanced- Search/
 **Role:** Entry point of the plugin. Defines constants, loads all includes, and instantiates the core singleton.
 
 **Key Components:**
-- `HamSeda_Search_Core` — Singleton class that holds references to all sub-modules (`$assets`, `$query`, `$ajax`, `$shortcode`).
+- `HamSeda_Search_Core` — Singleton class that holds references to all sub-modules (`$assets`, `$query`, `$ajax`, `$shortcode`, `$settings`).
 - `define_constants()` — Defines `HAMSEDA_SEARCH_VERSION`, `HAMSEDA_SEARCH_FILE`, `HAMSEDA_SEARCH_PATH`, `HAMSEDA_SEARCH_URL`.
-- `includes()` — Requires all 5 files from `includes/`.
+- `includes()` — Requires all files from `includes/` (including `class-admin-settings.php` conditionally when in admin context).
 - `init_hooks()` — Hooks into `plugins_loaded`.
 - `hamseda_search()` — Global helper function to access the singleton instance.
+- `is_woocommerce_active()` — Checks if WooCommerce is active via `class_exists('WooCommerce')`.
 
 **Impact on Export Data:** Provides the central access point (`hamseda_search()->query`, `hamseda_search()->assets`, etc.) used by all other modules.
 
@@ -86,7 +88,8 @@ Advanced- Search/
 - `normalize_persian_text()` — Converts Arabic `ي`/`ك` to Persian `ی`/`ک`.
 - `custom_posts_search()` — Modifies the SQL `LIKE` clause to replace specific Persian words with wildcard versions (e.g., `اضطراب` → `ا_طراب` for fuzzy matching of common misspellings).
 - `get_fuzzy_wildcard_word()` — Dictionary of fuzzy pairs for psychiatric terms (اضطراب, وسواس, افسردگی, تمرکز, حافظه, هیپنوتیزم).
-- `search_product_categories()` — Searches `product_cat` taxonomy with transient caching (12-hour TTL).
+- `search_product_categories()` — Searches `product_cat` taxonomy with transient caching (12-hour TTL). Features a 6-level relevance scoring system: exact match (5), starts with (4), contains (3), starts with word (2), contains word (1), no match (0). Falls back to space-stripped compound form and per-word matching for multi-word queries.
+- **Cache invalidation:** Hooks `saved_term` and `deleted_term` actions to auto-purge taxonomy search transients when categories change.
 
 **Impact on Export Data:** Produces the search results (posts and categories) that are encoded into JSON by the AJAX handler. All search refinement, normalization, and fuzzy logic happen here.
 
@@ -98,7 +101,8 @@ Advanced- Search/
 
 **Key Components:**
 - `__construct()` — Registers `wp_ajax_hamseda_global_search` and `wp_ajax_nopriv_hamseda_global_search` actions.
-- `handle_search()` — Verifies nonce, sanitizes the search term, calls `->query->execute()` and `->query->search_product_categories()`. Formats results into a structured JSON response with post metadata (title, permalink, image, badge color, price, stock status for products).
+- **Rate limiting:** Constants `RATE_LIMIT_MAX = 30` requests per `RATE_LIMIT_WINDOW = 60` seconds, enforced per IP via transient tracking.
+- `handle_search()` — Verifies nonce, checks rate limit, sanitizes the search term, calls `->query->execute()` and `->query->search_product_categories()`. Formats results into a structured JSON response with post metadata (title, permalink, image, badge color, `post_type_label` from settings, price, stock status for products).
 
 **Export Data Structure:**
 ```json
@@ -115,6 +119,7 @@ Advanced- Search/
         "permalink": "...",
         "image_url": "...",
         "post_type": "product",
+        "post_type_label": "محصول",
         "badge_color": "#F59E0B",
         "regular_price": "100000",
         "sale_price": "80000",
@@ -149,7 +154,39 @@ Advanced- Search/
 
 ---
 
-### 7. `templates/search-template.php`
+### 7. `includes/class-admin-settings.php`
+
+**Role:** Admin settings page for configuring search post types, taxonomies, custom labels, and section headers.
+
+**Key Components:**
+- `add_settings_page()` — Adds a submenu under **Settings → جستجوی هوشمند همصدا** via `add_options_page()`.
+- `register_settings()` — Registers the `hamseda_search_settings` option array with a sanitization callback.
+- `sanitize_settings()` — Sanitizes all inputs: boolean flags for post types/taxonomies, text fields for labels/headers.
+- `render_settings_page()` — Three-card UI layout:
+  - **Active Post Types** — Grid of checkboxes with custom label text inputs. Dynamically discovers all public, searchable post types (excludes internal types like `attachment`, `revision`, etc.). Default: `post`, `page`, `product`, `esanj`.
+  - **Active Taxonomies** — Grid of taxonomy checkboxes with custom label inputs. Default: `product_cat`.
+  - **Results Section Titles** — Customizable header text for "Products & Posts" and "Related Categories" result sections.
+- `get_discoverable_post_types()` — Auto-discovers public post types not excluded from search, filtering out WordPress internals.
+- `get_discoverable_taxonomies()` — Auto-discovers public taxonomies, filtering out internal ones.
+
+**Impact on Export Data:** Controls which post types and taxonomies appear in search results, their display labels (`post_type_label` in JSON), and the section header text rendered in the template.
+
+---
+
+### 8. `uninstall.php`
+
+**Role:** Cleans up all plugin data when the plugin is deleted from the WordPress Plugins screen.
+
+**Key Components:**
+- `_hamseda_delete_transients()` — Deletes all transients with the `hamseda_%` prefix via a direct SQL query on `{$wpdb->options}`.
+- **Multisite support:** Iterates through all sites in the network (excluding spam/deleted/archived), switches to each blog, deletes options and transients, then restores.
+- Cleans up the `hamseda_search_settings` option.
+
+**Impact on Export Data:** Ensures no orphaned options or transients remain after plugin deletion.
+
+---
+
+### 9. `templates/search-template.php`
 
 **Role:** Full HTML markup for the search widget.
 
@@ -162,7 +199,7 @@ Advanced- Search/
 
 ---
 
-### 8. `assets/js/hamseda-search.js`
+### 10. `assets/js/hamseda-search.js`
 
 **Role:** All frontend interactivity — event handling, AJAX calls, DOM rendering.
 
@@ -172,6 +209,7 @@ Advanced- Search/
 - **`performSearch()`:** Constructs a `FormData` POST request to `admin-ajax.php` with `action=hamseda_global_search`, `term`, and `nonce`. Returns JSON.
 - **`renderSearchResults()`:** Builds HTML for categories (with product count badges) and posts (with type badges, images, prices/stock status).
 - **`createResultHTML()`:** Generates individual result item markup with animated entry delays.
+- **Keyboard Shortcuts:** `Ctrl+K` / `Cmd+K` and `/` (when not focused on an input) open the search UI.
 - **Desktop Events:** `input` on search field, `click` on clear button, `focus` to show dropdown, document click to hide.
 - **Mobile Events:** `click` on trigger to open modal, `click` on close button to close with slide transition, body scroll lock via `modal-open` class.
 
@@ -179,7 +217,7 @@ Advanced- Search/
 
 ---
 
-### 9. `assets/css/src/input.css`
+### 11. `assets/css/src/input.css`
 
 **Role:** Tailwind CSS source file with custom component styles.
 
@@ -193,7 +231,7 @@ Advanced- Search/
 
 ---
 
-### 10. `tailwind.config.js`
+### 12. `tailwind.config.js`
 
 **Role:** Tailwind CSS configuration.
 
@@ -204,7 +242,7 @@ Advanced- Search/
 
 ---
 
-### 11. `package.json`
+### 13. `package.json`
 
 **Role:** Node.js project configuration.
 
@@ -213,13 +251,6 @@ Advanced- Search/
 - `npm run watch` — Watches for changes and recompiles.
 
 **Dependency:** `tailwindcss ^3.4.3`
-
----
-
-### 12. `context.html`
-
-**Role:** Standalone prototype/demo HTML page (not used in production). Includes hardcoded mock data and client-side JS to simulate the search behavior without WordPress. Useful for UI development and testing in isolation.
-
 ---
 
 ## Data Flow Diagram
@@ -239,6 +270,7 @@ POST /wp-admin/admin-ajax.php
         ▼
 class-ajax-handler.php :: handle_search()
   │  ── Verifies nonce
+  │  ── Checks rate limit (30 req/60s per IP)
   │  ── Sanitizes term
         │
         ├──► class-search-query.php :: execute()
@@ -289,6 +321,7 @@ All exported data flows through the AJAX handler into JSON. The key export paylo
 | `image_url`     | string?  | Thumbnail URL or `null`            |
 | `post_type`     | string   | `esanj`, `post`, `page`, `product` |
 | `badge_color`   | string   | Hex color per post type            |
+| `post_type_label` | string | Custom display label from admin settings |
 | `regular_price` | string   | (Product only) Regular price       |
 | `sale_price`    | string   | (Product only) Sale price          |
 | `stock_status`  | string   | (Product only) `instock`/`outofstock` |
@@ -297,19 +330,23 @@ All exported data flows through the AJAX handler into JSON. The key export paylo
 
 ## Key Features Summary
 
-- **Singleton architecture** with module separation (assets, query, AJAX, shortcode)
+- **Singleton architecture** with module separation (assets, query, AJAX, shortcode, settings)
+- **Admin settings panel** with dynamic post type/taxonomy discovery, custom labels, and section headers
 - **Persian text normalization** (Arabic → Persian character conversion)
 - **Fuzzy wildcard matching** for common psychiatric/medical misspellings (6 word groups)
 - **Multi-post-type search:** Custom post type `esanj` + posts + pages + WooCommerce products
-- **Product category search** with 12-hour transient caching
+- **Product category search** with 12-hour transient caching, 6-level relevance scoring, and auto-invalidation on term changes
 - **Dual responsive UI:** Inline desktop dropdown + full-screen mobile modal
 - **AbortController** for canceling stale AJAX requests
 - **Debounced input** (400ms delay)
+- **Rate-limited AJAX** (30 requests per 60 seconds per IP)
+- **Keyboard shortcuts:** `Ctrl+K` / `Cmd+K` and `/` to open search
 - **Animated results** with staggered fade-in and loading dots
 - **Custom scrollbar** styled with brand colors
 - **Nonce-protected AJAX** for security
 - **Tailwind CSS** with scoped isolation via `important` selector
 - **RTL-first design** (Persian language)
+- **Thorough uninstall** with multisite support and full transient cleanup
 
 ---
 
