@@ -55,6 +55,25 @@ class HamSeda_Search_Query {
 		// Unhook immediately to prevent affecting other queries on the page
 		remove_filter( 'posts_search', array( $this, 'custom_posts_search' ), 10 );
 
+		// Sort posts by post_type priority: esanj > post > page > product > others
+		if ( ! empty( $query->posts ) ) {
+			$priority = array(
+				'esanj'   => 0,
+				'post'    => 1,
+				'page'    => 2,
+				'product' => 3,
+			);
+			usort( $query->posts, function( $a, $b ) use ( $priority ) {
+				$pa = isset( $priority[ $a->post_type ] ) ? $priority[ $a->post_type ] : 99;
+				$pb = isset( $priority[ $b->post_type ] ) ? $priority[ $b->post_type ] : 99;
+				return $pa - $pb;
+			} );
+			// Reindex the posts array so have_posts/the_post works correctly
+			$query->posts         = array_values( $query->posts );
+			$query->post_count    = count( $query->posts );
+			$query->current_post  = -1;
+		}
+
 		return $query;
 	}
 
@@ -166,6 +185,13 @@ class HamSeda_Search_Query {
 	private $current_category_search_term = '';
 
 	/**
+	 * Temporary property to hold taxonomies being searched.
+	 *
+	 * @var array
+	 */
+	private $current_search_taxonomies = array();
+
+	/**
 	 * Filter terms_clauses to inject fuzzy search wildcards for get_terms search.
 	 *
 	 * @param array $clauses    Terms query clauses.
@@ -180,8 +206,15 @@ class HamSeda_Search_Query {
 			return $clauses;
 		}
 
-		// Restrict strictly to product_cat taxonomy query
-		if ( ! in_array( 'product_cat', $taxonomies, true ) ) {
+		// Only apply to the taxonomies we are currently searching
+		$has_match = false;
+		foreach ( $this->current_search_taxonomies as $enabled_tax ) {
+			if ( in_array( $enabled_tax, $taxonomies, true ) ) {
+				$has_match = true;
+				break;
+			}
+		}
+		if ( ! $has_match ) {
 			return $clauses;
 		}
 
@@ -208,65 +241,104 @@ class HamSeda_Search_Query {
 	}
 
 	/**
-	 * Search within product categories using get_terms with transient caching.
+	 * Search within all enabled taxonomies using get_terms with transient caching.
+	 * Works for any public taxonomy (custom, WooCommerce, etc.).
 	 *
 	 * @param string $search_term The search keyword.
-	 * @return array Array of matching WP_Term objects.
+	 * @return array Array of matching WP_Term objects with taxonomy info.
 	 */
 	public function search_product_categories( $search_term ) {
-		if ( ! hamseda_search()->is_woocommerce_active() ) {
-			return array();
-		}
-
 		$options = get_option( 'hamseda_search_settings', array() );
-		$taxonomies = array();
+		$enabled_taxonomies = array();
 
 		if ( ! empty( $options ) && isset( $options['taxonomies'] ) && is_array( $options['taxonomies'] ) ) {
 			foreach ( $options['taxonomies'] as $slug => $enabled ) {
 				if ( $enabled ) {
-					$taxonomies[] = $slug;
+					$enabled_taxonomies[] = sanitize_key( $slug );
 				}
 			}
-		} else {
-			// Fallback if settings are empty (new install)
-			$taxonomies = array( 'product_cat' );
 		}
 
-		// If product_cat is not enabled in settings, skip category search
-		if ( ! in_array( 'product_cat', $taxonomies, true ) ) {
+		// No taxonomies enabled — return empty
+		if ( empty( $enabled_taxonomies ) ) {
 			return array();
 		}
 
 		$normalized_term = $this->normalize_persian_text( $search_term );
 
-		$cache_key = 'hamseda_cat_search_' . md5( $normalized_term );
+		$cache_key    = 'hamseda_tax_search_' . md5( $normalized_term . implode( '|', $enabled_taxonomies ) );
 		$cached_terms = get_transient( $cache_key );
 
 		if ( false !== $cached_terms ) {
 			return $cached_terms;
 		}
 
-		// Store term to be accessed by filter
-		$this->current_category_search_term = $normalized_term;
+		// Build a list of search variants to cover multi-word input.
+		// e.g. "تست های" → [ "تست های", "تستهای", "تست", "های" ]
+		$search_variants = array( $normalized_term );
 
-		// Hook terms_clauses filter
-		add_filter( 'terms_clauses', array( $this, 'custom_terms_clauses' ), 10, 3 );
+		// Space-stripped compound form (e.g. "تست های" → "تستهای")
+		$stripped = str_replace( ' ', '', $normalized_term );
+		if ( $stripped !== $normalized_term && ! in_array( $stripped, $search_variants, true ) ) {
+			$search_variants[] = $stripped;
+		}
 
-		$args = array(
-			'taxonomy'   => 'product_cat',
-			'hide_empty' => false,
-			'search'     => $normalized_term,
-			'number'     => 5,
-		);
+		// Individual words (only words with 3+ characters)
+		$words = explode( ' ', $normalized_term );
+		if ( count( $words ) > 1 ) {
+			foreach ( $words as $word ) {
+				$word = trim( $word );
+				if ( mb_strlen( $word ) >= 3 && ! in_array( $word, $search_variants, true ) ) {
+					$search_variants[] = $word;
+				}
+			}
+		}
 
-		$terms = get_terms( $args );
-		
-		// Unhook immediately
-		remove_filter( 'terms_clauses', array( $this, 'custom_terms_clauses' ), 10 );
+		$merged_terms = array();
+		$seen_term_ids = array();
 
-		if ( ! is_wp_error( $terms ) ) {
-			set_transient( $cache_key, $terms, 12 * HOUR_IN_SECONDS );
-			return $terms;
+		foreach ( $search_variants as $variant ) {
+			// Store context for the filter
+			$this->current_category_search_term = $variant;
+			$this->current_search_taxonomies    = $enabled_taxonomies;
+
+			// Hook terms_clauses filter
+			add_filter( 'terms_clauses', array( $this, 'custom_terms_clauses' ), 10, 3 );
+
+			$args = array(
+				'taxonomy'   => $enabled_taxonomies,
+				'hide_empty' => false,
+				'search'     => $variant,
+				'number'     => 8,
+			);
+
+			$terms = get_terms( $args );
+
+			// Unhook immediately
+			remove_filter( 'terms_clauses', array( $this, 'custom_terms_clauses' ), 10 );
+
+			// Reset context
+			$this->current_category_search_term = '';
+			$this->current_search_taxonomies    = array();
+
+			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+				foreach ( $terms as $term ) {
+					if ( ! in_array( $term->term_id, $seen_term_ids, true ) ) {
+						$merged_terms[]  = $term;
+						$seen_term_ids[] = $term->term_id;
+					}
+				}
+			}
+
+			// Stop early if we already have enough results
+			if ( count( $merged_terms ) >= 8 ) {
+				break;
+			}
+		}
+
+		if ( ! empty( $merged_terms ) ) {
+			set_transient( $cache_key, $merged_terms, 12 * HOUR_IN_SECONDS );
+			return $merged_terms;
 		}
 
 		return array();

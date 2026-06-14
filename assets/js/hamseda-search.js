@@ -219,8 +219,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Post-type sort priority: esanj first, then post, then page, then product, then others
+    const postTypePriority = { esanj: 0, post: 1, page: 2, product: 3 };
+
+    function sortPostsByType(posts) {
+        return posts.slice().sort((a, b) => {
+            const pa = postTypePriority[a.post_type] !== undefined ? postTypePriority[a.post_type] : 99;
+            const pb = postTypePriority[b.post_type] !== undefined ? postTypePriority[b.post_type] : 99;
+            return pa - pb;
+        });
+    }
+
     function renderSearchResults(data, resultsContainer, categoriesWrapper, categoriesContainer, postsWrapper, postsContainer, noResults) {
-        const posts = data.posts || [];
+        // Sort posts client-side as well (categories always appear first in layout)
+        const posts = sortPostsByType(data.posts || []);
         const categories = data.categories || [];
 
         resultsContainer.classList.remove('hidden');
@@ -257,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Render Posts/Products
+        // Render Posts/Products (sorted: esanj → post → page → product)
         if (posts.length > 0) {
             let postHtml = '';
             posts.forEach((item, index) => {
@@ -284,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         desktopInput.addEventListener('input', () => {
             toggleClear(desktopInput, desktopClearBtn);
-            if (desktopInput.value.trim().length > 2) {
+            if (desktopInput.value.trim().length >= 2) {
                 debouncedDesktopSearch(desktopInput.value.trim());
             } else {
                 desktopResults.classList.add('hidden');
@@ -305,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         desktopInput.addEventListener('focus', () => {
-            if (desktopInput.value.trim().length > 2) {
+            if (desktopInput.value.trim().length >= 2) {
                 desktopDropdown.classList.remove('hidden');
             }
         });
@@ -331,7 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         mobileInput.addEventListener('input', () => {
             toggleClear(mobileInput, mobileClearBtn);
-            if (mobileInput.value.trim().length > 2) {
+            if (mobileInput.value.trim().length >= 2) {
                 debouncedMobileSearch(mobileInput.value.trim());
             } else {
                 mobileResults.classList.add('hidden');
