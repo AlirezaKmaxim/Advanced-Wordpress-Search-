@@ -11,7 +11,7 @@
     
     #hamseda-ajax-search-app .result-item {
         animation: fadeSlideIn 0.3s ease-out forwards;
-        opacity: 0; /* Start hidden for animation */
+        opacity: 0;
     }
 
     @keyframes pulseDot {
@@ -23,30 +23,32 @@
     #hamseda-ajax-search-app .loader-dot:nth-child(2) { animation-delay: 0.2s; }
     #hamseda-ajax-search-app .loader-dot:nth-child(3) { animation-delay: 0.4s; }
 
-    /* Prevent body scroll when mobile modal is open */
     body.modal-open { overflow: hidden; }
 
-    /* ========================================== */
-    /* Custom Thin Scrollbar with Kit Colors      */
-    /* ========================================== */
+    /* Custom Thin Scrollbar with Kit Colors */
     #hamseda-ajax-search-app .custom-scroll {
-        scrollbar-width: thin; /* For Firefox */
-        scrollbar-color: #5977BF #EDF0F8; /* Thumb / Track */
+        scrollbar-width: thin;
+        scrollbar-color: #FA7993 #F2EFEF;
     }
     
-    /* For Chrome, Safari, and Edge */
     #hamseda-ajax-search-app .custom-scroll::-webkit-scrollbar {
-        width: 6px; /* Thin width */
+        width: 6px;
     }
     #hamseda-ajax-search-app .custom-scroll::-webkit-scrollbar-track {
-        background: #EDF0F8; /* Primary Light */
+        background: #F2EFEF;
         border-radius: 10px;
     }
     #hamseda-ajax-search-app .custom-scroll::-webkit-scrollbar-thumb {
-        background: #5977BF; /* Secondary Blue */
-        border-radius: 10px; /* Rounded pill shape */
+        background: #FA7993;
+        border-radius: 10px;
     }
     #hamseda-ajax-search-app .custom-scroll::-webkit-scrollbar-thumb:hover {
-        background: #1F3161; /* Deep Navy on hover */
+        background: #E86681;
+    }
+
+    /* Underline on hover for result links */
+    #hamseda-ajax-search-app .result-item:hover .result-title {
+        text-decoration: underline;
+        text-underline-offset: 2px;
     }
 }

@@ -136,19 +136,18 @@ class HamSeda_AJAX_Handler {
 				$post_type = get_post_type();
 				$badge_color = '';
 
-				// Assign colors based on post type specs
 				switch ( $post_type ) {
 					case 'esanj':
-						$badge_color = '#5977BF'; // Secondary Blue
+						$badge_color = '#FFB3C1';
 						break;
 					case 'post':
-						$badge_color = '#DDCBFB'; // Lavender
+						$badge_color = '#7BA4F5';
 						break;
 					case 'page':
-						$badge_color = '#1F3161'; // Deep Navy
+						$badge_color = '#3A3A4A';
 						break;
 					case 'product':
-						$badge_color = '#F59E0B'; // Amber for product
+						$badge_color = '#FCE16D';
 						break;
 				}
 
