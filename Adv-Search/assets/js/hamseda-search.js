@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const desktopInput = document.getElementById('desktopSearchInput');
     const desktopClearBtn = document.getElementById('desktopClearBtn');
+    const desktopSearchIcon = document.getElementById('desktopSearchIcon');
     const desktopDropdown = document.getElementById('desktopDropdown');
     const desktopLoader = document.getElementById('desktopLoader');
     const desktopResults = document.getElementById('desktopResults');
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileCloseBtn = document.getElementById('mobileCloseBtn');
     const mobileInput = document.getElementById('mobileSearchInput');
     const mobileClearBtn = document.getElementById('mobileClearBtn');
+    const mobileSearchIcon = document.getElementById('mobileSearchIcon');
     const mobileLoader = document.getElementById('mobileLoader');
     const mobileResults = document.getElementById('mobileResults');
 
@@ -68,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
             <a href="${escapeHTML(url)}"
                id="hamseda-view-all-link"
-               class="view-all-link flex items-center justify-center gap-2 mt-3 pt-3 border-t border-[#E2E2E2] text-sm font-medium text-[#7BA4F5] hover:text-[#FA7993] transition-colors duration-150 group">
+               class="view-all-link flex items-center justify-center gap-2 mt-4 p-3 border border-[#9CA3AF] rounded-xl text-sm font-medium text-[#7BA4F5] hover:text-[#FA7993] hover:border-[#FA7993] hover:bg-[#FCFAFA] transition-all duration-150 group">
                 <svg class="w-4 h-4 transition-transform duration-150 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>

@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     $options = get_option( 'hamseda_search_settings', array() );
     $results_header_posts = isset( $options['results_header_posts'] ) && ! empty( $options['results_header_posts'] ) ? $options['results_header_posts'] : 'محصولات و مطالب';
     $results_header_taxonomies = isset( $options['results_header_taxonomies'] ) && ! empty( $options['results_header_taxonomies'] ) ? $options['results_header_taxonomies'] : 'دسته‌بندی‌های مرتبط';
+    $search_placeholder = isset( $options['search_placeholder'] ) && ! empty( $options['search_placeholder'] ) ? $options['search_placeholder'] : 'جستجوی هوشمند...';
     ?>
     <!-- ========================================== -->
     <!-- 1. DESKTOP SEARCH (Hidden on Mobile)       -->
@@ -25,18 +26,18 @@ if ( ! defined( 'ABSPATH' ) ) {
             <input 
                 id="desktopSearchInput"
                 type="text" 
-                placeholder="<?php esc_attr_e( 'جستجوی هوشمند...', 'hamseda-ajax-search' ); ?>" 
-                class="!w-full !h-16 !bg-[#FCFAFA] !border-2 !border-[#FCFAFA] !rounded-full !outline-none transition-all duration-300 focus:!border-[#FA7993] focus:!shadow-lg !text-[#3A3A4A] placeholder:!text-[#FA7993]/40 !pr-14 !pl-14 !text-lg !shadow-none focus:!ring-0"
+                placeholder="<?php echo esc_attr( $search_placeholder ); ?>" 
+                class="!w-full !h-16 !bg-white !border !border-gray-400 !rounded-full !outline-none transition-all duration-300 focus:!border-gray-700 focus:!shadow-lg !text-[#3A3A4A] placeholder:!text-[#FA7993]/40 !pr-[96px] !pl-4 !text-lg !shadow-none focus:!ring-0"
                 autocomplete="off"
             >
-            <!-- Search Icon -->
-            <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg class="w-6 h-6 text-[#7BA4F5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <!-- Search Icon (Right-aligned, side by side with clear button) -->
+            <div id="desktopSearchIcon" class="absolute right-16 top-1/2 -translate-y-1/2 pointer-events-none text-black z-10">
+                <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
-            <!-- Clear Button -->
+            <!-- Clear Button (Right-aligned) -->
             <button 
                 id="desktopClearBtn"
-                class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] z-10 !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] z-10 !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
                 type="button"
             >
                 <svg class="w-8 h-8" viewBox="18 23 43 30" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" enable-background="new 0 0 76.00 76.00" xml:space="preserve" fill="currentColor">
@@ -72,11 +73,14 @@ if ( ! defined( 'ABSPATH' ) ) {
     <!-- ========================================== -->
     <!-- 2. MOBILE SEARCH (Hidden on Desktop)       -->
     <!-- ========================================== -->
-    <div class="md:hidden flex justify-center w-full">
-        <button id="mobileSearchTrigger" class="bg-[#3A3A4A] text-white px-4 py-2.5 rounded-full inline-flex items-center justify-center gap-2 shadow-[0_4px_14px_0_rgba(250,121,147,0.25)] !border-none text-sm" type="button">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <?php esc_html_e( 'جستجو', 'hamseda-ajax-search' ); ?>
-        </button>
+    <div class="md:hidden flex justify-center w-full mobile-search-container">
+        <div id="mobileSearchTrigger" class="cursor-pointer flex items-center w-full h-12 bg-white border border-gray-400 rounded-full pr-12 pl-4 relative">
+            <!-- Search Icon (Right-aligned) -->
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 text-black pointer-events-none">
+                <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <span class="text-[#FA7993]/40 text-sm"><?php echo esc_html( $search_placeholder ); ?></span>
+        </div>
     </div>
 
     <!-- Mobile Modal -->
@@ -95,18 +99,18 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <input 
                         id="mobileSearchInput"
                         type="text" 
-                        placeholder="<?php esc_attr_e( 'جستجوی هوشمند...', 'hamseda-ajax-search' ); ?>" 
-                        class="!w-full !h-12 !bg-[#FCFAFA] !border-2 !border-[#FCFAFA] !rounded-full !outline-none transition-all duration-300 focus:!border-[#FA7993] focus:!shadow-lg !text-[#3A3A4A] placeholder:!text-[#FA7993]/40 !pr-12 !pl-12 !text-base !shadow-none focus:!ring-0"
+                        placeholder="<?php echo esc_attr( $search_placeholder ); ?>" 
+                        class="!w-full !h-12 !bg-white !border !border-gray-400 !rounded-full !outline-none transition-all duration-300 focus:!border-gray-700 focus:!shadow-lg !text-[#3A3A4A] placeholder:!text-[#FA7993]/40 !pr-[80px] !pl-4 !text-base !shadow-none focus:!ring-0"
                         autocomplete="off"
                     >
-                    <!-- Search Icon -->
-                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <svg class="w-6 h-6 text-[#7BA4F5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <!-- Search Icon (Right-aligned, side by side with clear button) -->
+                    <div id="mobileSearchIcon" class="absolute right-[52px] top-1/2 -translate-y-1/2 pointer-events-none text-black z-10">
+                        <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <!-- Clear Button -->
+                    <!-- Clear Button (Right-aligned) -->
                     <button 
                         id="mobileClearBtn"
-                        class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
                         type="button"
                     >
                         <svg class="w-6 h-6" viewBox="18 23 43 30" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" enable-background="new 0 0 76.00 76.00" xml:space="preserve" fill="currentColor">

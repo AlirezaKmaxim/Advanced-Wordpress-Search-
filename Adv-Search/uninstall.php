@@ -12,7 +12,7 @@
  *  ✓ Per-site options on WordPress Multisite installations
  *
  * @package HamSeda_Ajax_Search
- * @since   2.0.8
+ * @since   2.0.9
  */
 
 // WordPress sets this constant before running uninstall.php.

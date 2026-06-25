@@ -4,7 +4,7 @@
 
 **HamSeda Ajax Search** is a WordPress plugin that provides a **premium, high-performance, fuzzy AJAX search widget** with full Persian (Farsi) language support. It enables real-time searching across multiple post types (`esanj`, `post`, `page`, `product`) with an interactive dual-interface UI (desktop dropdown + mobile modal).
 
-- **Version:** 2.0.8
+- **Version:** 2.0.9
 - **Author:** Alireza KMaxim (HamSeda.com)
 - **License:** GPL2
 - **Text Domain:** `hamseda-ajax-search`

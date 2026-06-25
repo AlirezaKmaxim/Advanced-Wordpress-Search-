@@ -82,13 +82,17 @@ class HamSeda_Search_Query {
 			's'              => $normalized_term,
 		);
 
-		// Hook our custom SQL generator to posts_search
+		// Hook our custom SQL generators
+		add_filter( 'posts_join', array( $this, 'custom_search_join' ), 10, 2 );
+		add_filter( 'posts_distinct', array( $this, 'custom_search_distinct' ), 10, 2 );
 		add_filter( 'posts_search', array( $this, 'custom_posts_search' ), 10, 2 );
 
 		// Initialize WP_Query
 		$query = new WP_Query( $args );
 
 		// Unhook immediately to prevent affecting other queries on the page
+		remove_filter( 'posts_join', array( $this, 'custom_search_join' ), 10 );
+		remove_filter( 'posts_distinct', array( $this, 'custom_search_distinct' ), 10 );
 		remove_filter( 'posts_search', array( $this, 'custom_posts_search' ), 10 );
 
 		// Sort posts by post_type priority: esanj > post > page > product > others
@@ -127,7 +131,7 @@ class HamSeda_Search_Query {
 	}
 
 	/**
-	 * Filter posts_search to inject fuzzy search wildcards.
+	 * Filter posts_search to inject fuzzy search wildcards and WooCommerce SKU, attribute, and brand matching.
 	 *
 	 * @param string   $search   Search SQL clause.
 	 * @param WP_Query $wp_query The WP_Query instance.
@@ -159,14 +163,59 @@ class HamSeda_Search_Query {
 				// WordPress escapes search terms for SQL LIKE.
 				// We obtain the escaped version of both original and wildcard words.
 				$escaped_word     = $wpdb->esc_like( $word );
-				$escaped_wildcard = str_replace( '\\_', '_', $wpdb->esc_like( $wildcard_word ) );
+				$escaped_wildcard = str_replace( array( '\\_', '\\%' ), array( '_', '%' ), $wpdb->esc_like( $wildcard_word ) );
 
 				// Replace the original escaped word in the SQL query with the wildcard version
 				$search = str_replace( $escaped_word, $escaped_wildcard, $search );
 			}
 		}
 
+		// Inject WooCommerce SKU, Attribute and Brand search if WooCommerce is active
+		if ( hamseda_search()->is_woocommerce_active() ) {
+			// Find each pattern like `(wp_posts.post_content LIKE '%[escaped_word]%')` and append the postmeta & term matches
+			$pattern = '/\(' . preg_quote( $wpdb->posts, '/' ) . '\.post_content\s+LIKE\s+(\'([^\']+)\')\)/';
+			$replacement = '(' . $wpdb->posts . '.post_content LIKE $1) OR (hamseda_pm.meta_value LIKE $1) OR (hamseda_t.name LIKE $1 AND (hamseda_tt.taxonomy LIKE \'pa_%\' OR hamseda_tt.taxonomy IN (\'product_cat\', \'product_tag\', \'product_brand\', \'pwb-brand\', \'yith_product_brand\', \'brand\')))';
+			$search = preg_replace( $pattern, $replacement, $search );
+		}
+
 		return $search;
+	}
+
+	/**
+	 * Join postmeta and taxonomy tables when WooCommerce search is active.
+	 *
+	 * @param string   $join     Join SQL clause.
+	 * @param WP_Query $wp_query The WP_Query instance.
+	 * @return string Modified Join SQL clause.
+	 */
+	public function custom_search_join( $join, $wp_query ) {
+		global $wpdb;
+
+		if ( ! empty( $wp_query->get( 's' ) ) && hamseda_search()->is_woocommerce_active() ) {
+			// Join postmeta for SKU search (with a unique alias to prevent collisions)
+			$join .= " LEFT JOIN {$wpdb->postmeta} AS hamseda_pm ON ({$wpdb->posts}.ID = hamseda_pm.post_id AND hamseda_pm.meta_key = '_sku') ";
+			
+			// Join term tables for attributes and brands search
+			$join .= " LEFT JOIN {$wpdb->term_relationships} AS hamseda_tr ON ({$wpdb->posts}.ID = hamseda_tr.object_id) ";
+			$join .= " LEFT JOIN {$wpdb->term_taxonomy} AS hamseda_tt ON (hamseda_tr.term_taxonomy_id = hamseda_tt.term_taxonomy_id) ";
+			$join .= " LEFT JOIN {$wpdb->terms} AS hamseda_t ON (hamseda_tt.term_id = hamseda_t.term_id) ";
+		}
+
+		return $join;
+	}
+
+	/**
+	 * Set SELECT DISTINCT when WooCommerce search is active to prevent duplicates.
+	 *
+	 * @param string   $distinct Distinct SQL clause.
+	 * @param WP_Query $wp_query The WP_Query instance.
+	 * @return string Modified Distinct SQL clause.
+	 */
+	public function custom_search_distinct( $distinct, $wp_query ) {
+		if ( ! empty( $wp_query->get( 's' ) ) && hamseda_search()->is_woocommerce_active() ) {
+			return 'DISTINCT';
+		}
+		return $distinct;
 	}
 
 	/**
@@ -205,9 +254,52 @@ class HamSeda_Search_Query {
 			'هیپنوتیسم'  => 'هیپنوتی_م', // Note: using wildcard _ for the last confused letter
 		);
 
-		// Handle key matching (make sure it works for both inputs)
-		if ( isset( $wildcards[ $word ] ) ) {
-			return $wildcards[ $word ];
+		// 1. Split compound words if they are written together
+		$processed = $this->split_compound_word( $word );
+
+		// 2. Handle psychiatric wildcard dictionary
+		if ( isset( $wildcards[ $processed ] ) ) {
+			$processed = $wildcards[ $processed ];
+		}
+
+		// 3. Dynamic replacement for د and ذ (replace them with SQL single-character wildcard '_')
+		$fuzzy_word = str_replace( array( 'د', 'ذ' ), '_', $processed );
+		if ( $fuzzy_word !== $processed ) {
+			$processed = $fuzzy_word;
+		}
+
+		return $processed;
+	}
+
+	/**
+	 * Insert % wildcard between known prefixes/suffixes of compound words if they are written together.
+	 *
+	 * @param string $word
+	 * @return string
+	 */
+	private function split_compound_word( $word ) {
+		$prefixes = array( 'روان', 'خود', 'خوذ', 'خوش', 'برنامه', 'کتاب', 'پیش', 'هم', 'بی', 'تست' );
+		$suffixes = array( 'نویس', 'نویسی', 'شناس', 'شناسی', 'سنج', 'سنجی', 'نامه', 'خانه', 'دهنده', 'کننده', 'یاب', 'یابی', 'ساز', 'سازی', 'کار', 'کاری', 'گذار', 'گذاری', 'گزار', 'گزاری', 'یار', 'یاری' );
+
+		// Check prefixes first
+		foreach ( $prefixes as $prefix ) {
+			$prefix_len = mb_strlen( $prefix );
+			if ( mb_strlen( $word ) > $prefix_len && mb_substr( $word, 0, $prefix_len ) === $prefix ) {
+				if ( mb_strpos( $word, '%' ) === false && mb_strpos( $word, '_' ) === false ) {
+					return $prefix . '%' . mb_substr( $word, $prefix_len );
+				}
+			}
+		}
+
+		// Check suffixes
+		foreach ( $suffixes as $suffix ) {
+			$suffix_len = mb_strlen( $suffix );
+			$word_len   = mb_strlen( $word );
+			if ( $word_len > $suffix_len && mb_substr( $word, $word_len - $suffix_len ) === $suffix ) {
+				if ( mb_strpos( $word, '%' ) === false && mb_strpos( $word, '_' ) === false ) {
+					return mb_substr( $word, 0, $word_len - $suffix_len ) . '%' . $suffix;
+				}
+			}
 		}
 
 		return $word;
@@ -266,7 +358,7 @@ class HamSeda_Search_Query {
 			$wildcard_word = $this->get_fuzzy_wildcard_word( $word );
 			if ( $wildcard_word !== $word ) {
 				$escaped_word     = $wpdb->esc_like( $word );
-				$escaped_wildcard = str_replace( '\\_', '_', $wpdb->esc_like( $wildcard_word ) );
+				$escaped_wildcard = str_replace( array( '\\_', '\\%' ), array( '_', '%' ), $wpdb->esc_like( $wildcard_word ) );
 
 				// Replace the original escaped word in the WHERE clause
 				$clauses['where'] = str_replace( $escaped_word, $escaped_wildcard, $clauses['where'] );

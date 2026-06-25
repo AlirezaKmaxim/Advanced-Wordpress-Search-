@@ -73,6 +73,7 @@ class HamSeda_Admin_Settings {
 
 			$sanitized['results_header_posts'] = isset( $input['results_header_posts'] ) ? sanitize_text_field( $input['results_header_posts'] ) : '';
 			$sanitized['results_header_taxonomies'] = isset( $input['results_header_taxonomies'] ) ? sanitize_text_field( $input['results_header_taxonomies'] ) : '';
+			$sanitized['search_placeholder'] = isset( $input['search_placeholder'] ) ? sanitize_text_field( $input['search_placeholder'] ) : '';
 
 			$sanitized['taxonomies'] = array();
 			if ( isset( $input['taxonomies'] ) && is_array( $input['taxonomies'] ) ) {
@@ -193,6 +194,12 @@ class HamSeda_Admin_Settings {
 										<th scope="row"><label><?php esc_html_e( 'عنوان نتایج دسته‌بندی‌ها', 'hamseda-ajax-search' ); ?></label></th>
 										<td>
 											<input type="text" name="hamseda_search_settings[results_header_taxonomies]" value="<?php echo esc_attr( isset( $options['results_header_taxonomies'] ) && ! empty( $options['results_header_taxonomies'] ) ? $options['results_header_taxonomies'] : 'دسته‌بندی‌های مرتبط' ); ?>" class="regular-text" />
+										</td>
+									</tr>
+									<tr>
+										<th scope="row"><label><?php esc_html_e( 'متن نگهدارنده (Placeholder) فیلد جستجو', 'hamseda-ajax-search' ); ?></label></th>
+										<td>
+											<input type="text" name="hamseda_search_settings[search_placeholder]" value="<?php echo esc_attr( isset( $options['search_placeholder'] ) && ! empty( $options['search_placeholder'] ) ? $options['search_placeholder'] : 'جستجوی هوشمند...' ); ?>" class="regular-text" />
 										</td>
 									</tr>
 								</tbody>

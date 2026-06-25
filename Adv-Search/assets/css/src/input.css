@@ -46,9 +46,112 @@
         background: #E86681;
     }
 
-    /* Underline on hover for result links */
-    #hamseda-ajax-search-app .result-item:hover .result-title {
-        text-decoration: underline;
-        text-underline-offset: 2px;
+    /* Complete Style Isolation Reset */
+    #hamseda-ajax-search-app,
+    #hamseda-ajax-search-app *,
+    #mobileModal,
+    #mobileModal * {
+        box-sizing: border-box !important;
+        font-family: YekanBakh, IRANSans, Tahoma, sans-serif !important;
+    }
+
+    /* Absolutely no underlines unless explicitly marked line-through */
+    #hamseda-ajax-search-app *:not(.line-through),
+    #hamseda-ajax-search-app *:not(.line-through):hover,
+    #hamseda-ajax-search-app *:not(.line-through):focus,
+    #hamseda-ajax-search-app *:not(.line-through):active,
+    #mobileModal *:not(.line-through),
+    #mobileModal *:not(.line-through):hover,
+    #mobileModal *:not(.line-through):focus,
+    #mobileModal *:not(.line-through):active {
+        text-decoration: none !important;
+    }
+
+    /* Icon Positioning to Right side of Input */
+    #hamseda-ajax-search-app #desktopSearchIcon {
+        right: 64px !important;
+        left: auto !important;
+    }
+    #hamseda-ajax-search-app #desktopClearBtn {
+        right: 16px !important;
+        left: auto !important;
+    }
+    #mobileModal #mobileSearchIcon {
+        right: 52px !important;
+        left: auto !important;
+    }
+    #mobileModal #mobileClearBtn {
+        right: 12px !important;
+        left: auto !important;
+    }
+
+    /* 15% reduction in size and spacing for search results (except padding which is explicitly set to 12px for product items) */
+    #hamseda-ajax-search-app #desktopPosts .result-item,
+    #hamseda-ajax-search-app #mobilePosts .result-item {
+        border: 1px solid #E5E7EB !important; /* gray-200 very soft border */
+        padding: 12px !important; /* internal padding */
+        background-color: #ffffff !important;
+        border-radius: 12px !important;
+        gap: 12px !important; /* 15% less than 16px (gap-4) */
+    }
+    
+    #hamseda-ajax-search-app #desktopPosts .result-item:hover,
+    #hamseda-ajax-search-app #mobilePosts .result-item:hover {
+        background-color: #F9FAFB !important; /* gray-50 on hover */
+        border-color: #D1D5DB !important; /* gray-300 on hover */
+    }
+    
+    #hamseda-ajax-search-app .result-item .w-14 {
+        width: 48px !important; /* 15% less than 56px (w-14) */
+        height: 48px !important;
+    }
+
+    #hamseda-ajax-search-app #desktopPosts,
+    #hamseda-ajax-search-app #mobilePosts {
+        gap: 10px !important; /* 15% less than 12px (gap-3) */
+    }
+
+    #hamseda-ajax-search-app [id$="Categories"] .result-item {
+        padding: 4px 10px !important;
+        font-size: 12px !important;
+    }
+
+    /* Responsive Mobile Container with calc() width */
+    #hamseda-ajax-search-app .mobile-search-container {
+        width: calc(100% - 32px) !important;
+        max-width: 480px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* "Show all results" Button as a real button with soft border */
+    #hamseda-ajax-search-app .view-all-link {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        margin-top: 16px !important;
+        padding: 12px !important;
+        border: 1px solid #D1D5DB !important; /* soft gray border */
+        border-radius: 12px !important;
+        background-color: #F9FAFB !important; /* soft gray bg */
+        color: #374151 !important; /* gray-700 text */
+        font-weight: 500 !important;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        transition: all 0.2s ease-in-out !important;
+    }
+    #hamseda-ajax-search-app .view-all-link:hover {
+        background-color: #F3F4F6 !important;
+        border-color: #9CA3AF !important;
+        color: #111827 !important;
+    }
+    #hamseda-ajax-search-app .view-all-link svg {
+        color: #000000 !important; /* icon color matches search bar icon color */
+    }
+
+    /* Badge 4px vertical padding (top and bottom) */
+    #hamseda-ajax-search-app .result-item span.rounded-full {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
     }
 }
