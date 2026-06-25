@@ -67,22 +67,42 @@
         text-decoration: none !important;
     }
 
-    /* Icon Positioning to Right side of Input */
+    /* Icon Positioning to Left side of Input */
     #hamseda-ajax-search-app #desktopSearchIcon {
-        right: 64px !important;
-        left: auto !important;
+        left: 16px !important;
+        right: auto !important;
     }
     #hamseda-ajax-search-app #desktopClearBtn {
-        right: 16px !important;
-        left: auto !important;
+        left: 48px !important;
+        right: auto !important;
     }
     #mobileModal #mobileSearchIcon {
-        right: 52px !important;
-        left: auto !important;
+        left: 8px !important;
+        right: auto !important;
     }
     #mobileModal #mobileClearBtn {
-        right: 12px !important;
-        left: auto !important;
+        left: 38px !important;
+        right: auto !important;
+    }
+
+    /* Border and Focus styles for Search Inputs and Trigger */
+    #hamseda-ajax-search-app #desktopSearchInput,
+    #hamseda-ajax-search-app #mobileSearchTrigger,
+    #mobileModal #mobileSearchInput {
+        border: 1px solid #D1D5DB !important; /* soft gray border */
+        transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+    }
+    
+    #hamseda-ajax-search-app #desktopSearchInput:focus,
+    #mobileModal #mobileSearchInput:focus {
+        border-color: #000000 !important; /* 1px black border on focus */
+        box-shadow: none !important; /* override shadow */
+    }
+
+    #hamseda-ajax-search-app #desktopSearchInput::placeholder,
+    #hamseda-ajax-search-app #mobileSearchTrigger span,
+    #mobileModal #mobileSearchInput::placeholder {
+        color: #9CA3AF !important; /* gray-400 soft gray */
     }
 
     /* 15% reduction in size and spacing for search results (except padding which is explicitly set to 12px for product items) */

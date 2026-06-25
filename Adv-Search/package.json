@@ -1,6 +1,6 @@
 {
   "name": "hamseda-ajax-search",
-  "version": "2.0.9",
+  "version": "2.1.0",
   "description": "WordPress Ajax Search plugin with Tailwind CSS build pipeline",
   "main": "hamseda-ajax-search.php",
   "scripts": {

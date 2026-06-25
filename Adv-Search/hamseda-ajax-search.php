@@ -3,7 +3,7 @@
  * Plugin Name:       HamSeda Ajax Search
  * Plugin URI:        https://hamseda.com
  * Description:       A premium, high-performance, fuzzy AJAX search plugin for WordPress.
- * Version:           2.0.9
+ * Version:           2.1.0
  * Author:            Alireza KMaxim
  * Author URI:        https://github.com/AlirezaKmaxim
  * License:           GPL2
@@ -98,7 +98,7 @@ final class HamSeda_Search_Core {
 	 * Define plugin constants.
 	 */
 	private function define_constants() {
-		define( 'HAMSEDA_SEARCH_VERSION', '2.0.9' );
+		define( 'HAMSEDA_SEARCH_VERSION', '2.1.0' );
 		define( 'HAMSEDA_SEARCH_FILE', __FILE__ );
 		define( 'HAMSEDA_SEARCH_PATH', plugin_dir_path( __FILE__ ) );
 		define( 'HAMSEDA_SEARCH_URL', plugin_dir_url( __FILE__ ) );
