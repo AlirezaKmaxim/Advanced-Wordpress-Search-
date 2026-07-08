@@ -1,13 +1,18 @@
 # HamSeda Ajax Search
 
+[![Version](https://img.shields.io/badge/version-2.0.9-blue)](hamseda-ajax-search.php)
+[![License](https://img.shields.io/badge/license-GPLv2-green)](LICENSE)
+[![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-purple)](https://wordpress.org)
+[![PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4)](https://php.net)
+
 A premium, high-performance, fuzzy AJAX search plugin for WordPress with full Persian (Farsi) language support. Provides real-time searching across multiple post types with an interactive dual-interface UI — inline desktop dropdown + full-screen mobile modal.
 
 ## Features
 
 - **Fuzzy Persian Search** — Intelligent wildcard matching for common psychiatric/medical misspellings (اضطراب, وسواس, افسردگی, تمرکز, حافظه, هیپنوتیزم)
 - **Persian Text Normalization** — Automatic conversion of Arabic `ي`/`ك` to Persian `ی`/`ک`
-- **Multi Post-Type Search** — Searches across custom post types, posts, pages, and WooCommerce products
-- **Product Category Search** — Searches WooCommerce product categories with 12-hour transient caching
+- **Multi Post-Type Search** — Searches across custom post types (esanj), posts, pages, and WooCommerce products
+- **Product Category Search** — Searches WooCommerce product categories with 6-level relevance scoring and 12-hour transient caching
 - **Dual Responsive UI** — Inline desktop dropdown + full-screen mobile modal with slide transition
 - **AJAX with AbortController** — Cancels stale requests to prevent race conditions
 - **Rate-Limited AJAX** — 30 requests per 60 seconds per IP to prevent abuse
@@ -16,7 +21,8 @@ A premium, high-performance, fuzzy AJAX search plugin for WordPress with full Pe
 - **Animated Results** — Staggered fade-in animations and animated loading dots
 - **Nonce-Protected AJAX** — Secure search endpoints
 - **WooCommerce Integration** — Displays prices, sale badges, and stock status for products
-- **Admin Settings Panel** — Enable/disable post types, taxonomies, and customize result labels
+- **Admin Settings Panel** — Enable/disable post types, taxonomies, and customize result labels/section headers
+- **Automatic Post Type Discovery** — Dynamically discovers all public searchable post types in the admin panel
 - **RTL-First Design** — Built for Persian language
 - **Tailwind CSS with Scoped Isolation** — All styles scoped under `#hamseda-ajax-search-app`
 
@@ -50,10 +56,10 @@ Navigate to **Settings → جستجوی هوشمند همصدا** (Settings → 
 
 | Setting | Description |
 |---------|-------------|
-| Enable Search | Master toggle for the AJAX search system |
 | Active Post Types | Choose which post types appear in results (esanj, post, page, product, etc.) |
 | Custom Post Type Labels | Override display labels for each post type |
 | Active Taxonomies | Choose which taxonomies appear in category results |
+| Custom Taxonomy Labels | Override display labels for each taxonomy |
 | Results Section Titles | Customize the "Products & Posts" and "Related Categories" headings |
 
 ## Build Pipeline
@@ -129,6 +135,16 @@ hamseda-ajax-search/
 ```
 
 ## Changelog
+
+### 2.0.9
+- Style improvements and UI refinements
+
+### 2.0.1
+- New category search with multi-level relevance scoring
+- Rate limiting (30 requests per 60 seconds per IP)
+- Keyboard shortcuts: `Ctrl+K` / `Cmd+K` and `/` to open search
+- Improved category queries
+- CSS fixes and WooCommerce attribute queries
 
 ### 1.0.0
 - Initial release
