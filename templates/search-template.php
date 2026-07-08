@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <!-- Search Wrapper -->
-<div id="hamseda-ajax-search-app" class="font-yekan w-full" dir="rtl">
+<div id="hamseda-ajax-search-app" class="font-yekan" dir="rtl">
     <?php 
     if ( class_exists( 'HamSeda_Icons' ) ) HamSeda_Icons::render_spritesheet(); 
     $options = get_option( 'hamseda_search_settings', array() );
@@ -21,28 +21,26 @@ if ( ! defined( 'ABSPATH' ) ) {
     <!-- ========================================== -->
     <!-- 1. DESKTOP SEARCH (Hidden on Mobile)       -->
     <!-- ========================================== -->
-    <div class="hidden md:flex justify-center items-center w-full mx-auto relative">
-        <div class="relative w-full">
+    <div class="hidden md:flex justify-center items-center w-full h-full mx-auto relative">
+        <div class="relative w-full h-full">
             <input 
                 id="desktopSearchInput"
                 type="text" 
                 placeholder="<?php echo esc_attr( $search_placeholder ); ?>" 
-                class="!w-full !h-16 !bg-white !border !border-gray-300 !rounded-full !outline-none transition-all duration-300 focus:!border-black !text-[#3A3A4A] placeholder:!text-gray-400 !pr-4 !pl-24 !text-lg !shadow-none focus:!ring-0"
+                class="!w-full !h-full !bg-white !border !border-gray-400 !rounded-full !outline-none transition-all duration-300 focus:!border-gray-700 focus:!shadow-lg !text-[#3A3A4A] placeholder:!text-[#FA7993]/40 !pr-12 !pl-12 !text-lg !shadow-none focus:!ring-0"
                 autocomplete="off"
             >
-            <!-- Search Icon (Left-aligned, side by side with clear button) -->
-            <div id="desktopSearchIcon" class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-black z-10">
-                <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <!-- Search Icon (Left-aligned) -->
+            <div id="desktopSearchIcon" class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10 flex items-center justify-center">
+                <svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M11.5 21.75C5.85 21.75 1.25 17.15 1.25 11.5C1.25 5.85 5.85 1.25 11.5 1.25C17.15 1.25 21.75 5.85 21.75 11.5C21.75 17.15 17.15 21.75 11.5 21.75ZM11.5 2.75C6.67 2.75 2.75 6.68 2.75 11.5C2.75 16.32 6.67 20.25 11.5 20.25C16.33 20.25 20.25 16.32 20.25 11.5C20.25 6.68 16.33 2.75 11.5 2.75Z" fill="#5A5A5A"></path><path d="M22 22.75C21.81 22.75 21.62 22.68 21.47 22.53L19.47 20.53C19.18 20.24 19.18 19.76 19.47 19.47C19.76 19.18 20.24 19.18 20.53 19.47L22.53 21.47C22.82 21.76 22.82 22.24 22.53 22.53C22.38 22.68 22.19 22.75 22 22.75Z" fill="#5A5A5A"></path></svg>
             </div>
-            <!-- Clear Button (Left-aligned) -->
+            <!-- Clear Button (Right-aligned) -->
             <button 
                 id="desktopClearBtn"
-                class="absolute left-12 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] z-10 !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] z-10 !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
                 type="button"
             >
-                <svg class="w-8 h-8" viewBox="18 23 43 30" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" enable-background="new 0 0 76.00 76.00" xml:space="preserve" fill="currentColor">
-                    <path fill="currentColor" fill-opacity="1" stroke-width="0.2" stroke-linejoin="round" d="M 57.9853,41.5355L 49.0354,50.4854C 47.9317,51.589 47,52 45,52L 24,52C 21.2386,52 19,49.7614 19,47L 19,29C 19,26.2386 21.2386,24 24,24L 45,24C 47,24 47.9317,24.4113 49.0354,25.5149L 57.9853,34.4645C 59.9379,36.4171 59.9379,39.5829 57.9853,41.5355 Z M 28.4719,42.9497L 31.0503,45.5281L 36,40.5784L 40.9498,45.5281L 43.5282,42.9497L 38.5785,37.9999L 43.5282,33.0502L 40.9498,30.4718L 36,35.4215L 31.0503,30.4718L 28.4719,33.0502L 33.4216,37.9999L 28.4719,42.9497 Z "/>
-                </svg>
+                <svg aria-hidden="true" class="w-4 h-4" viewBox="0 0 352 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z" fill="currentColor"></path></svg>
             </button>
 
             <!-- Dropdown Container -->
@@ -73,13 +71,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     <!-- ========================================== -->
     <!-- 2. MOBILE SEARCH (Hidden on Desktop)       -->
     <!-- ========================================== -->
-    <div class="md:hidden flex justify-center w-full mobile-search-container">
-        <div id="mobileSearchTrigger" class="cursor-pointer flex items-center w-full h-12 bg-white border border-gray-300 rounded-full pr-2 pl-10 relative">
+    <div class="md:hidden flex justify-center w-full h-full mobile-search-container">
+        <div id="mobileSearchTrigger" class="cursor-pointer flex items-center w-full h-full bg-white border border-gray-400 rounded-full pl-12 pr-4 relative">
             <!-- Search Icon (Left-aligned) -->
-            <div class="absolute left-2 top-1/2 -translate-y-1/2 text-black pointer-events-none">
-                <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-black pointer-events-none flex items-center justify-center">
+                <svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M11.5 21.75C5.85 21.75 1.25 17.15 1.25 11.5C1.25 5.85 5.85 1.25 11.5 1.25C17.15 1.25 21.75 5.85 21.75 11.5C21.75 17.15 17.15 21.75 11.5 21.75ZM11.5 2.75C6.67 2.75 2.75 6.68 2.75 11.5C2.75 16.32 6.67 20.25 11.5 20.25C16.33 20.25 20.25 16.32 20.25 11.5C20.25 6.68 16.33 2.75 11.5 2.75Z" fill="#5A5A5A"></path><path d="M22 22.75C21.81 22.75 21.62 22.68 21.47 22.53L19.47 20.53C19.18 20.24 19.18 19.76 19.47 19.47C19.76 19.18 20.24 19.18 20.53 19.47L22.53 21.47C22.82 21.76 22.82 22.24 22.53 22.53C22.38 22.68 22.19 22.75 22 22.75Z" fill="#5A5A5A"></path></svg>
             </div>
-            <span class="text-gray-400 text-sm"><?php echo esc_html( $search_placeholder ); ?></span>
+            <span class="text-[#FA7993]/40 text-sm"><?php echo esc_html( $search_placeholder ); ?></span>
         </div>
     </div>
 
@@ -100,22 +98,20 @@ if ( ! defined( 'ABSPATH' ) ) {
                         id="mobileSearchInput"
                         type="text" 
                         placeholder="<?php echo esc_attr( $search_placeholder ); ?>" 
-                        class="!w-full !h-12 !bg-white !border !border-gray-300 !rounded-full !outline-none transition-all duration-300 focus:!border-black !text-[#3A3A4A] placeholder:!text-gray-400 !pr-2 !pl-20 !text-base !shadow-none focus:!ring-0"
+                        class="!w-full !h-12 !bg-white !border !border-gray-400 !rounded-full !outline-none transition-all duration-300 focus:!border-gray-700 focus:!shadow-lg !text-[#3A3A4A] placeholder:!text-[#FA7993]/40 !pr-10 !pl-10 !text-base !shadow-none focus:!ring-0"
                         autocomplete="off"
                     >
-                    <!-- Search Icon (Left-aligned, side by side with clear button) -->
-                    <div id="mobileSearchIcon" class="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none text-black z-10">
-                        <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <!-- Search Icon (Left-aligned) -->
+                    <div id="mobileSearchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10 flex items-center justify-center">
+                        <svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M11.5 21.75C5.85 21.75 1.25 17.15 1.25 11.5C1.25 5.85 5.85 1.25 11.5 1.25C17.15 1.25 21.75 5.85 21.75 11.5C21.75 17.15 17.15 21.75 11.5 21.75ZM11.5 2.75C6.67 2.75 2.75 6.68 2.75 11.5C2.75 16.32 6.67 20.25 11.5 20.25C16.33 20.25 20.25 16.32 20.25 11.5C20.25 6.68 16.33 2.75 11.5 2.75Z" fill="#5A5A5A"></path><path d="M22 22.75C21.81 22.75 21.62 22.68 21.47 22.53L19.47 20.53C19.18 20.24 19.18 19.76 19.47 19.47C19.76 19.18 20.24 19.18 20.53 19.47L22.53 21.47C22.82 21.76 22.82 22.24 22.53 22.53C22.38 22.68 22.19 22.75 22 22.75Z" fill="#5A5A5A"></path></svg>
                     </div>
-                    <!-- Clear Button (Left-aligned) -->
+                    <!-- Clear Button (Right-aligned) -->
                     <button 
                         id="mobileClearBtn"
-                        class="absolute left-[38px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
                         type="button"
                     >
-                        <svg class="w-6 h-6" viewBox="18 23 43 30" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" enable-background="new 0 0 76.00 76.00" xml:space="preserve" fill="currentColor">
-                            <path fill="currentColor" fill-opacity="1" stroke-width="0.2" stroke-linejoin="round" d="M 57.9853,41.5355L 49.0354,50.4854C 47.9317,51.589 47,52 45,52L 24,52C 21.2386,52 19,49.7614 19,47L 19,29C 19,26.2386 21.2386,24 24,24L 45,24C 47,24 47.9317,24.4113 49.0354,25.5149L 57.9853,34.4645C 59.9379,36.4171 59.9379,39.5829 57.9853,41.5355 Z M 28.4719,42.9497L 31.0503,45.5281L 36,40.5784L 40.9498,45.5281L 43.5282,42.9497L 38.5785,37.9999L 43.5282,33.0502L 40.9498,30.4718L 36,35.4215L 31.0503,30.4718L 28.4719,33.0502L 33.4216,37.9999L 28.4719,42.9497 Z "/>
-                        </svg>
+                        <svg aria-hidden="true" class="w-4 h-4" viewBox="0 0 352 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z" fill="currentColor"></path></svg>
                     </button>
                 </div>
             </div>

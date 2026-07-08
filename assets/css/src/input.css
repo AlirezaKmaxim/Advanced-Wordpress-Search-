@@ -46,13 +46,74 @@
         background: #E86681;
     }
 
+    /* Main App Wrapper Styles */
+    #hamseda-ajax-search-app {
+        box-sizing: border-box !important;
+        color: rgb(51, 51, 51) !important;
+        display: flex !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+        font-size: 16px !important;
+        font-weight: 400 !important;
+        height: 50px !important;
+        line-height: 24px !important;
+        margin-top: 0px !important;
+        text-align: start !important;
+        text-size-adjust: 100% !important;
+        unicode-bidi: isolate !important;
+        -webkit-font-smoothing: antialiased !important;
+    }
+
+    @media (min-width: 768px) {
+        #hamseda-ajax-search-app {
+            width: 550px !important;
+        }
+    }
+
+    @media (max-width: 767px) {
+        #hamseda-ajax-search-app {
+            width: 280px !important;
+        }
+        #hamseda-ajax-search-app .mobile-search-container {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    /* Input Border Radius (50px), font size, text color & Smooth Drodown Results Shadow */
+    #hamseda-ajax-search-app #desktopSearchInput,
+    #hamseda-ajax-search-app #mobileSearchTrigger,
+    #mobileModal #mobileSearchInput {
+        border-radius: 50px !important;
+        font-size: 16px !important;
+        color: rgb(156, 163, 175) !important;
+    }
+
+    /* Input Placeholder Text Color */
+    #hamseda-ajax-search-app #desktopSearchInput::placeholder,
+    #hamseda-ajax-search-app #mobileSearchTrigger span,
+    #mobileModal #mobileSearchInput::placeholder {
+        color: rgb(156, 163, 175) !important;
+    }
+
+    /* Softer focus shadow and less opacity */
+    #hamseda-ajax-search-app #desktopSearchInput:focus,
+    #mobileModal #mobileSearchInput:focus {
+        box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02) !important;
+    }
+
+    #hamseda-ajax-search-app #desktopDropdown {
+        box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.08), 0 5px 15px -8px rgba(0, 0, 0, 0.04) !important;
+        border: 1px solid rgba(0, 0, 0, 0.06) !important;
+        border-radius: 24px !important;
+    }
+
     /* Complete Style Isolation Reset */
     #hamseda-ajax-search-app,
     #hamseda-ajax-search-app *,
     #mobileModal,
     #mobileModal * {
         box-sizing: border-box !important;
-        font-family: YekanBakh, IRANSans, Tahoma, sans-serif !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
     }
 
     /* Absolutely no underlines unless explicitly marked line-through */
@@ -67,42 +128,30 @@
         text-decoration: none !important;
     }
 
-    /* Icon Positioning to Left side of Input */
+    /* Icon Positioning: Search Icon to Left, Clear Button to Right */
     #hamseda-ajax-search-app #desktopSearchIcon {
         left: 16px !important;
         right: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
     #hamseda-ajax-search-app #desktopClearBtn {
-        left: 48px !important;
-        right: auto !important;
+        right: 16px !important;
+        left: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
     #mobileModal #mobileSearchIcon {
-        left: 8px !important;
+        left: 12px !important;
         right: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
     #mobileModal #mobileClearBtn {
-        left: 38px !important;
-        right: auto !important;
-    }
-
-    /* Border and Focus styles for Search Inputs and Trigger */
-    #hamseda-ajax-search-app #desktopSearchInput,
-    #hamseda-ajax-search-app #mobileSearchTrigger,
-    #mobileModal #mobileSearchInput {
-        border: 1px solid #D1D5DB !important; /* soft gray border */
-        transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
-    }
-    
-    #hamseda-ajax-search-app #desktopSearchInput:focus,
-    #mobileModal #mobileSearchInput:focus {
-        border-color: #000000 !important; /* 1px black border on focus */
-        box-shadow: none !important; /* override shadow */
-    }
-
-    #hamseda-ajax-search-app #desktopSearchInput::placeholder,
-    #hamseda-ajax-search-app #mobileSearchTrigger span,
-    #mobileModal #mobileSearchInput::placeholder {
-        color: #9CA3AF !important; /* gray-400 soft gray */
+        right: 12px !important;
+        left: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
 
     /* 15% reduction in size and spacing for search results (except padding which is explicitly set to 12px for product items) */
