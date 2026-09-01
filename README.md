@@ -1,159 +1,78 @@
-# HamSeda Ajax Search
+# جستجوی هوشمند علیرضا (Alireza Smart Search)
 
-[![Version](https://img.shields.io/badge/version-2.0.9-blue)](hamseda-ajax-search.php)
-[![License](https://img.shields.io/badge/license-GPLv2-green)](LICENSE)
-[![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-purple)](https://wordpress.org)
-[![PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4)](https://php.net)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue)](alireza-ajax-search.php)
+[![PHP](https://img.shields.io/badge/PHP-%3E%3D7.4-green)](https://www.php.net)
+[![WordPress](https://img.shields.io/badge/WordPress-%3E%3D5.6-blue)](https://wordpress.org)
+[![WooCommerce](https://img.shields.io/badge/WooCommerce-Compatible-purple)](https://woocommerce.com)
+[![License](https://img.shields.io/badge/license-GPL--2.0-lightgrey)](LICENSE)
 
-A premium, high-performance, fuzzy AJAX search plugin for WordPress with full Persian (Farsi) language support. Provides real-time searching across multiple post types with an interactive dual-interface UI — inline desktop dropdown + full-screen mobile modal.
+یک افزونه جستجوی ایجکس هوشمند، فوق‌سریع و چندمنظوره برای وردپرس و ووکامرس، همراه با معماری ماژولار جاوااسکریپت و بیلد پایپ‌لاین پیشرفته `esbuild` و `Tailwind CSS`.
 
-## Features
+---
 
-- **Fuzzy Persian Search** — Intelligent wildcard matching for common psychiatric/medical misspellings (اضطراب, وسواس, افسردگی, تمرکز, حافظه, هیپنوتیزم)
-- **Persian Text Normalization** — Automatic conversion of Arabic `ي`/`ك` to Persian `ی`/`ک`
-- **Multi Post-Type Search** — Searches across custom post types (esanj), posts, pages, and WooCommerce products
-- **Product Category Search** — Searches WooCommerce product categories with 6-level relevance scoring and 12-hour transient caching
-- **Dual Responsive UI** — Inline desktop dropdown + full-screen mobile modal with slide transition
-- **AJAX with AbortController** — Cancels stale requests to prevent race conditions
-- **Rate-Limited AJAX** — 30 requests per 60 seconds per IP to prevent abuse
-- **Debounced Input** — 400ms delay before firing search
-- **Keyboard Shortcuts** — `Ctrl+K` / `Cmd+K` and `/` to open search
-- **Animated Results** — Staggered fade-in animations and animated loading dots
-- **Nonce-Protected AJAX** — Secure search endpoints
-- **WooCommerce Integration** — Displays prices, sale badges, and stock status for products
-- **Admin Settings Panel** — Enable/disable post types, taxonomies, and customize result labels/section headers
-- **Automatic Post Type Discovery** — Dynamically discovers all public searchable post types in the admin panel
-- **RTL-First Design** — Built for Persian language
-- **Tailwind CSS with Scoped Isolation** — All styles scoped under `#hamseda-ajax-search-app`
+## ✨ ویژگی‌های کلیدی
 
-## Requirements
+- **جستجوی ایجکس بلادرنگ (Real-time AJAX)** — پاسخ سریع به محض تایپ کاربر، بدون نیاز به رفرش صفحه.
+- **موتور جستجوی فازی و اصلاح غلط املایی** — تبدیل اتوماتیک حروف عربی/فارسی (ی/ک)، تفکیک کلمات ترکیبی و سرهم با پیشوند/پسوند، و جدول نگاشت غلط‌های رایج.
+- **جستجوی همزمان در پست‌ها و دسته‌بندی‌ها** — جستجوی تفکیک‌شده در پست‌تایپ‌های دلخواه (محصولات، مقالات، برگه‌ها و...) همراه با دسته‌بندی‌ها و تاکسونومی‌ها.
+- **سیستم مدیریت کامل رنگ‌ها در پیشخوان** — امکان تعیین رنگ اصلی (Primary)، ثانویه (Secondary)، پس‌زمینه، حاشیه، متن، قیمت و رنگ بج اختصاصی برای هر پست‌تایپ با WP Color Picker.
+- **طراحی مدرن UI/UX PRO MAX** — نوار کپسولی شناور، بج میانبر کیبورد (`Ctrl+K` / `/`)، نتایج شیشه‌ای مات (Glassmorphism) و انیمیشن‌های نرم.
+- **پایپ‌لاین بیلد مدرن با esbuild و Tailwind CSS** — ماژولار بودن سورس JS در `assets/js/src/` و باندل تک‌فایلی فشرده شده در `assets/js/alireza-search.min.js`.
+- **امنیت و کارایی بالا** — اعتبارسنجی Nonce، سیستم ضداسپم و Rate Limiting (۴۰ درخواست در ۶۰ ثانیه به ازای هر IP) و کش سرور با ترنزینت‌های وردپرس.
 
-- WordPress 5.0+
-- PHP 7.4+
-- WooCommerce (optional, for product support)
+---
 
-## Installation
+## 🚀 نصب و راه‌اندازی
 
-1. Download the plugin ZIP and extract it, or clone this repository into `/wp-content/plugins/hamseda-ajax-search/`
-2. Activate the plugin from the WordPress **Plugins** admin page
-3. Go to **Settings → جستجوی هوشمند همصدا** to configure search options
+1. پوشه افزونه را درون دایرکتوری `/wp-content/plugins/alireza-ajax-search/` قرار دهید.
+2. از بخش افزونه‌ها در پیشخوان وردپرس، افزونه **«جستجوی هوشمند علیرضا»** را فعال کنید.
+3. جهت نمایش باکس جستجو در قالب، از کد کوتاه زیر استفاده نمایید:
 
-## Usage
-
-Insert the search widget anywhere on your site using the shortcode:
-
-```
-[hamseda_ajax_search]
+```text
+[alireza_ajax_search]
 ```
 
-The shortcode renders a fully responsive search interface with:
-- **Desktop:** Inline search bar with a dropdown results panel
-- **Mobile:** A trigger button that opens a full-screen modal
+یا در فایل‌های قالب PHP:
+```php
+<?php echo do_shortcode( '[alireza_ajax_search]' ); ?>
+```
 
-## Configuration
+---
 
-Navigate to **Settings → جستجوی هوشمند همصدا** (Settings → HamSeda Smart Search) in the WordPress admin.
+## 🆕 تازه در نسخه ۲.۲.۰ (بهینه‌سازی سرعت)
 
-| Setting | Description |
-|---------|-------------|
-| Active Post Types | Choose which post types appear in results (esanj, post, page, product, etc.) |
-| Custom Post Type Labels | Override display labels for each post type |
-| Active Taxonomies | Choose which taxonomies appear in category results |
-| Custom Taxonomy Labels | Override display labels for each taxonomy |
-| Results Section Titles | Customize the "Products & Posts" and "Related Categories" headings |
+این نسخه یک بازبینی کامل عملکرد (Performance Audit) روی موتور جستجو بوده، بدون تغییر در رفتار خروجی برای کاربر نهایی:
 
-## Build Pipeline
+- حذف کوئری‌های اضافه‌ی `SQL_CALC_FOUND_ROWS` در هر جستجو.
+- رفع N+1 کوئری تصویر شاخص نتایج (یک کوئری به‌جای تا ۱۰ کوئری جداگانه).
+- اعمال حداقل طول عبارت جستجو در سمت سرور (نه فقط کلاینت).
+- کاهش تعداد کوئری‌های `get_terms()` در جستجوی دسته‌بندی‌ها.
+- جلوگیری از پاک‌سازی کامل کش با هر autosave/revision.
+- محدودسازی (`LIMIT`) کوئری‌های خام SKU/ترم و غیرفعال‌سازی پیش‌بارگذاری‌های بلااستفاده.
+- یکی‌سازی منطق خواندن تنظیمات در یک متد مرکزی.
 
-This plugin uses Tailwind CSS for styling. To modify styles:
+---
+
+## ⚡ توصیه‌ی زیرساختی برای بهترین کارایی (Persistent Object Cache)
+
+تمام لایه‌های کش این افزونه (کش نتیجه‌ی جستجو، کش دسته‌بندی‌ها و Rate Limiter) از Transients API وردپرس استفاده می‌کنند. روی هاستی که یک **Object Cache دائمی** (Redis یا Memcached، همراه با `object-cache.php`) نصب نباشد، این توابع مستقیماً روی جدول `wp_options` عمل می‌کنند و حتی درخواست‌های کش‌شده هم حداقل یک کوئری دیتابیس اضافه می‌گیرند.
+
+برای بهترین سرعت واقعی زیر بار همزمان (چند کاربر که هم‌زمان تایپ می‌کنند)، نصب یک Object Cache دائمی (مثل [Redis Object Cache](https://wordpress.org/plugins/redis-cache/) یا Memcached) قویاً توصیه می‌شود — تأثیر آن روی سرعت می‌تواند از هر بهینه‌سازی دیگر در کد این افزونه بیشتر باشد.
+
+---
+
+## 🛠️ دستورات بیلد و توسعه (Build & Dev)
 
 ```bash
+# نصب پکیج‌ها
 npm install
-npm run build    # Compile & minify CSS
-npm run watch    # Watch for changes
+
+# بیلد نهایی CSS و JS
+npm run build
+
+# توسعه و مانیتورینگ زنده جاوااسکریپت
+npm run watch:js
+
+# توسعه و مانیتورینگ زنده سی‌اس‌اس
+npm run watch:css
 ```
-
-CSS source: `assets/css/src/input.css` → Output: `assets/css/hamseda-search.css`
-
-## Architecture
-
-```
-hamseda-ajax-search/
-├── hamseda-ajax-search.php          # Bootstrap & Singleton core
-├── uninstall.php                    # Cleanup on plugin deletion
-├── includes/
-│   ├── class-admin-settings.php     # Settings page (post types, taxonomies, labels)
-│   ├── class-asset-manager.php      # CSS/JS registration & enqueuing
-│   ├── class-search-query.php       # Fuzzy WP_Query + taxonomy search
-│   ├── class-ajax-handler.php       # AJAX endpoint handler
-│   ├── class-shortcode.php          # [hamseda_ajax_search] shortcode
-│   └── hamseda-icons.php            # Inline SVG icon spritesheet
-├── templates/
-│   └── search-template.php          # Search UI HTML (desktop + mobile)
-├── assets/
-│   ├── css/hamseda-search.css       # Minified Tailwind CSS
-│   ├── css/src/input.css            # Tailwind source + custom animations
-│   └── js/hamseda-search.js         # Frontend JS: events, AJAX, rendering
-├── tailwind.config.js
-└── package.json
-```
-
-## Data Flow
-
-1. User types in the search input
-2. Frontend JS debounces input (400ms), then POSTs to `admin-ajax.php` with action `hamseda_global_search`
-3. `HamSeda_AJAX_Handler::handle_search()` verifies nonce, checks rate limit (30 req/60s per IP), and sanitizes input
-4. `HamSeda_Search_Query::execute()` runs a fuzzy WP_Query across configured post types (from admin settings)
-5. `HamSeda_Search_Query::search_product_categories()` searches categories with transient caching and relevance scoring
-6. JSON response is returned with posts and categories
-7. Frontend JS renders results with animated entry
-
-## AJAX Response Format
-
-```json
-{
-  "success": true,
-  "data": {
-    "categories": [
-      { "term_id": 1, "name": "Category", "url": "https://...", "count": 5 }
-    ],
-    "posts": [
-      {
-        "id": 123,
-        "title": "Post Title",
-        "permalink": "https://...",
-        "image_url": "https://...",
-        "post_type": "product",
-        "post_type_label": "محصول",
-        "badge_color": "#F59E0B",
-        "regular_price": "100000",
-        "sale_price": "80000",
-        "stock_status": "instock"
-      }
-    ]
-  }
-}
-```
-
-## Changelog
-
-### 2.0.9
-- Style improvements and UI refinements
-
-### 2.0.1
-- New category search with multi-level relevance scoring
-- Rate limiting (30 requests per 60 seconds per IP)
-- Keyboard shortcuts: `Ctrl+K` / `Cmd+K` and `/` to open search
-- Improved category queries
-- CSS fixes and WooCommerce attribute queries
-
-### 1.0.0
-- Initial release
-- Fuzzy Persian search with wildcard matching
-- Dual responsive UI (desktop dropdown + mobile modal)
-- WooCommerce product support with price/stock display
-- Admin settings panel with dynamic post type discovery
-- Tailwind CSS styling with component isolation
-
-## License
-
-GPLv2 or later

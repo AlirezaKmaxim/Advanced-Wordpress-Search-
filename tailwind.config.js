@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  important: '#hamseda-ajax-search-app',
+  important: ':is(#alireza-ajax-search-app, #alireza-admin-settings-app)',
   corePlugins: {
     preflight: false,
   },
@@ -15,8 +15,8 @@ module.exports = {
         yekan: ['YekanBakh', 'IRANSans', 'Tahoma', 'sans-serif'],
       },
       colors: {
-        primary: '#FFB3C1',
-        secondary: '#FA7993',
+        primary: '#FA7993',
+        secondary: '#FFB3C1',
         textBlue: '#7BA4F5',
         accent: '#FCE16D',
         deepNavy: '#3A3A4A',

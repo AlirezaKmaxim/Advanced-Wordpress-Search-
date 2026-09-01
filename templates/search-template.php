@@ -1,142 +1,126 @@
 <?php
 /**
- * Search template file.
+ * Search template file — Alireza Smart Search UI/UX PRO MAX Edition.
  *
- * @package HamSeda_Ajax_Search
+ * @package Alireza_Ajax_Search
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<!-- Search Wrapper -->
-<div id="hamseda-ajax-search-app" class="font-yekan" dir="rtl">
+<!-- Alireza Ajax Search Wrapper -->
+<div id="alireza-ajax-search-app" class="font-yekan" dir="rtl">
+    <script>
+    window.alirezaSearchSettings = window.alirezaSearchSettings || {
+        ajax_url: '<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>',
+        nonce: '<?php echo esc_js( wp_create_nonce( 'alireza_search_nonce' ) ); ?>',
+        search_url: '<?php echo esc_js( home_url( '/' ) ); ?>'
+    };
+    window.hamsedaSearchSettings = window.alirezaSearchSettings;
+    </script>
     <?php 
-    if ( class_exists( 'HamSeda_Icons' ) ) HamSeda_Icons::render_spritesheet(); 
-    $options = get_option( 'hamseda_search_settings', array() );
-    $results_header_posts = isset( $options['results_header_posts'] ) && ! empty( $options['results_header_posts'] ) ? $options['results_header_posts'] : 'محصولات و مطالب';
-    $results_header_taxonomies = isset( $options['results_header_taxonomies'] ) && ! empty( $options['results_header_taxonomies'] ) ? $options['results_header_taxonomies'] : 'دسته‌بندی‌های مرتبط';
-    $search_placeholder = isset( $options['search_placeholder'] ) && ! empty( $options['search_placeholder'] ) ? $options['search_placeholder'] : 'جستجوی هوشمند...';
+    if ( class_exists( 'Alireza_Icons' ) ) {
+        Alireza_Icons::render_spritesheet(); 
+    }
+    $options = alireza_search()->get_settings();
+    $results_header_posts      = ! empty( $options['results_header_posts'] ) ? $options['results_header_posts'] : 'محصولات و مطالب';
+    $results_header_taxonomies = ! empty( $options['results_header_taxonomies'] ) ? $options['results_header_taxonomies'] : 'دسته‌بندی‌های مرتبط';
+    $search_placeholder        = ! empty( $options['search_placeholder'] ) ? $options['search_placeholder'] : 'جستجوی هوشمند محصول، مقاله...';
     ?>
+    
     <!-- ========================================== -->
-    <!-- 1. DESKTOP SEARCH (Hidden on Mobile)       -->
+    <!-- MODERN FLOATING SEARCH INPUT CONTAINER     -->
     <!-- ========================================== -->
-    <div class="hidden md:flex justify-center items-center w-full h-full mx-auto relative">
+    <div class="alireza-search-inner flex justify-center items-center w-full h-full mx-auto relative">
         <div class="relative w-full h-full">
-            <input 
-                id="desktopSearchInput"
-                type="text" 
-                placeholder="<?php echo esc_attr( $search_placeholder ); ?>" 
-                class="!w-full !h-full !bg-white !border !border-gray-400 !rounded-full !outline-none transition-all duration-300 focus:!border-gray-700 focus:!shadow-lg !text-[#3A3A4A] placeholder:!text-[#FA7993]/40 !pr-12 !pl-12 !text-lg !shadow-none focus:!ring-0"
-                autocomplete="off"
-            >
-            <!-- Search Icon (Left-aligned) -->
-            <div id="desktopSearchIcon" class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10 flex items-center justify-center">
-                <svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M11.5 21.75C5.85 21.75 1.25 17.15 1.25 11.5C1.25 5.85 5.85 1.25 11.5 1.25C17.15 1.25 21.75 5.85 21.75 11.5C21.75 17.15 17.15 21.75 11.5 21.75ZM11.5 2.75C6.67 2.75 2.75 6.68 2.75 11.5C2.75 16.32 6.67 20.25 11.5 20.25C16.33 20.25 20.25 16.32 20.25 11.5C20.25 6.68 16.33 2.75 11.5 2.75Z" fill="#5A5A5A"></path><path d="M22 22.75C21.81 22.75 21.62 22.68 21.47 22.53L19.47 20.53C19.18 20.24 19.18 19.76 19.47 19.47C19.76 19.18 20.24 19.18 20.53 19.47L22.53 21.47C22.82 21.76 22.82 22.24 22.53 22.53C22.38 22.68 22.19 22.75 22 22.75Z" fill="#5A5A5A"></path></svg>
-            </div>
-            <!-- Clear Button (Right-aligned) -->
-            <button 
-                id="desktopClearBtn"
-                class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] z-10 !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
-                type="button"
-            >
-                <svg aria-hidden="true" class="w-4 h-4" viewBox="0 0 352 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z" fill="currentColor"></path></svg>
-            </button>
-
-            <!-- Dropdown Container -->
-            <div id="desktopDropdown" class="absolute top-20 right-0 left-0 bg-white rounded-3xl shadow-2xl p-6 hidden z-50 border border-[#E2E2E2]">
-                <!-- Preloader -->
-                <div id="desktopLoader" class="flex justify-center items-center py-10 hidden">
-                    <div class="loader-dot w-3 h-3 rounded-full bg-[#FA7993] mx-1.5"></div>
-                    <div class="loader-dot w-3 h-3 rounded-full bg-[#FFB3C1] mx-1.5"></div>
-                    <div class="loader-dot w-3 h-3 rounded-full bg-[#FCE16D] mx-1.5"></div>
+            <div class="alireza-input-wrapper relative flex items-center w-full h-full">
+                <!-- Search Input Field -->
+                <input 
+                    id="desktopSearchInput"
+                    type="text" 
+                    placeholder="<?php echo esc_attr( $search_placeholder ); ?>" 
+                    class="alireza-main-input !w-full !h-full !outline-none !text-base md:!text-lg !pr-11 !pl-11 !shadow-none !transition-all !duration-200"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                
+                <!-- Search Icon (Right-aligned in RTL) -->
+                <div id="desktopSearchIcon" class="alireza-icon-search absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10 flex items-center justify-center transition-transform duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
                 </div>
 
-                <!-- Results List -->
-                <div id="desktopResults" class="flex-col gap-4 max-h-[400px] overflow-y-auto custom-scroll pr-1 hidden">
-                    <div id="desktopCategoriesWrapper" class="hidden">
-                        <div class="px-2 py-1 text-xs font-bold text-[#707085] mb-2"><?php echo esc_html( $results_header_taxonomies ); ?></div>
+                <!-- Left Controls: Keyboard Shortcut Badge & Clear Button -->
+                <div class="alireza-controls-left absolute left-3 top-1/2 -translate-y-1/2 z-10 flex items-center">
+                    <!-- Clear Button -->
+                    <button 
+                        id="desktopClearBtn"
+                        class="alireza-clear-btn w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 hidden hover:bg-slate-100 active:scale-90 !border-none !outline-none !p-0 !bg-transparent cursor-pointer"
+                        type="button"
+                        aria-label="<?php esc_attr_e( 'پاک کردن', 'alireza-ajax-search' ); ?>"
+                    >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+
+                    <!-- Keyboard Shortcut Badge -->
+                    <span id="alirezaKbdBadge" class="alireza-kbd-badge hidden sm:inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-md border select-none pointer-events-none transition-opacity duration-150">
+                        Ctrl K
+                    </span>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- FLOATING GLASSMORPHIC DROPDOWN RESULTS     -->
+            <!-- ========================================== -->
+            <div id="desktopDropdown" class="alireza-dropdown absolute top-[calc(100%+12px)] right-0 left-0 hidden z-50 overflow-hidden">
+                <!-- Preloader with Fluid Modern Dots -->
+                <div id="desktopLoader" class="alireza-loader flex justify-center items-center py-10 hidden">
+                    <div class="loader-dot w-2.5 h-2.5 rounded-full mx-1"></div>
+                    <div class="loader-dot w-2.5 h-2.5 rounded-full mx-1"></div>
+                    <div class="loader-dot w-2.5 h-2.5 rounded-full mx-1"></div>
+                </div>
+
+                <!-- Results List Container -->
+                <div id="desktopResults" class="alireza-results-container flex-col gap-4 max-h-[440px] overflow-y-auto overflow-x-hidden custom-scroll p-4 md:p-5 hidden">
+                    <!-- Categories Wrapper -->
+                    <div id="desktopCategoriesWrapper" class="alireza-section-taxonomies hidden">
+                        <div class="flex items-center gap-2 px-1 py-1 text-xs font-bold uppercase tracking-wider mb-2.5 text-slate-500">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                            </svg>
+                            <span><?php echo esc_html( $results_header_taxonomies ); ?></span>
+                        </div>
                         <div id="desktopCategories" class="flex flex-wrap gap-2"></div>
                     </div>
-                    <div id="desktopPostsWrapper" class="hidden">
-                        <div class="px-2 py-1 text-xs font-bold text-[#707085] mb-2 mt-2"><?php echo esc_html( $results_header_posts ); ?></div>
-                        <div id="desktopPosts" class="flex flex-col gap-3"></div>
+
+                    <!-- Posts & Products Wrapper -->
+                    <div id="desktopPostsWrapper" class="alireza-section-posts hidden">
+                        <div class="flex items-center gap-2 px-1 py-1 text-xs font-bold uppercase tracking-wider mb-2.5 mt-2 text-slate-500">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                            <span><?php echo esc_html( $results_header_posts ); ?></span>
+                        </div>
+                        <div id="desktopPosts" class="flex flex-col gap-2.5"></div>
                     </div>
-                    <div id="desktopNoResults" class="hidden p-4 text-center text-[#707085] text-sm">نتیجه‌ای یافت نشد.</div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- ========================================== -->
-    <!-- 2. MOBILE SEARCH (Hidden on Desktop)       -->
-    <!-- ========================================== -->
-    <div class="md:hidden flex justify-center w-full h-full mobile-search-container">
-        <div id="mobileSearchTrigger" class="cursor-pointer flex items-center w-full h-full bg-white border border-gray-400 rounded-full pl-12 pr-4 relative">
-            <!-- Search Icon (Left-aligned) -->
-            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-black pointer-events-none flex items-center justify-center">
-                <svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M11.5 21.75C5.85 21.75 1.25 17.15 1.25 11.5C1.25 5.85 5.85 1.25 11.5 1.25C17.15 1.25 21.75 5.85 21.75 11.5C21.75 17.15 17.15 21.75 11.5 21.75ZM11.5 2.75C6.67 2.75 2.75 6.68 2.75 11.5C2.75 16.32 6.67 20.25 11.5 20.25C16.33 20.25 20.25 16.32 20.25 11.5C20.25 6.68 16.33 2.75 11.5 2.75Z" fill="#5A5A5A"></path><path d="M22 22.75C21.81 22.75 21.62 22.68 21.47 22.53L19.47 20.53C19.18 20.24 19.18 19.76 19.47 19.47C19.76 19.18 20.24 19.18 20.53 19.47L22.53 21.47C22.82 21.76 22.82 22.24 22.53 22.53C22.38 22.68 22.19 22.75 22 22.75Z" fill="#5A5A5A"></path></svg>
-            </div>
-            <span class="text-[#FA7993]/40 text-sm"><?php echo esc_html( $search_placeholder ); ?></span>
-        </div>
-    </div>
-
-    <!-- Mobile Modal -->
-    <div id="mobileModal" class="fixed inset-0 bg-white z-[999] flex flex-col hidden transition-transform duration-300 transform translate-y-full">
-        <!-- Modal Header -->
-        <div class="p-4 border-b border-[#FCFAFA]">
-            <div class="flex items-center gap-3">
-                <button id="mobileCloseBtn" class="!min-w-[44px] !min-h-[44px] !w-11 !h-11 rounded-full bg-[#FCFAFA] flex items-center justify-center text-[#525266] hover:bg-[#FFB3C1] hover:text-[#3A3A4A] transition-all flex-shrink-0 !border-none !outline-none !shadow-none !p-0 shadow-[0_4px_14px_0_rgba(250,121,147,0.15)]" type="button">
-                    <svg class="!w-8 !h-8" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g id="SVGRepo_bgCarrier" stroke-width="0"/>
-                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
-                        <g id="SVGRepo_iconCarrier"> <rect width="48" height="48" fill="white" fill-opacity="0.01"/> <path d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" fill="#FA7993" stroke="#FA7993" stroke-width="4" stroke-linejoin="round"/> <path d="M29.6569 18.3431L18.3432 29.6568" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18.3432 18.3431L29.6569 29.6568" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> </g>
-                    </svg>
-                </button>
-                <div class="relative flex-1">
-                    <input 
-                        id="mobileSearchInput"
-                        type="text" 
-                        placeholder="<?php echo esc_attr( $search_placeholder ); ?>" 
-                        class="!w-full !h-12 !bg-white !border !border-gray-400 !rounded-full !outline-none transition-all duration-300 focus:!border-gray-700 focus:!shadow-lg !text-[#3A3A4A] placeholder:!text-[#FA7993]/40 !pr-10 !pl-10 !text-base !shadow-none focus:!ring-0"
-                        autocomplete="off"
-                    >
-                    <!-- Search Icon (Left-aligned) -->
-                    <div id="mobileSearchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10 flex items-center justify-center">
-                        <svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M11.5 21.75C5.85 21.75 1.25 17.15 1.25 11.5C1.25 5.85 5.85 1.25 11.5 1.25C17.15 1.25 21.75 5.85 21.75 11.5C21.75 17.15 17.15 21.75 11.5 21.75ZM11.5 2.75C6.67 2.75 2.75 6.68 2.75 11.5C2.75 16.32 6.67 20.25 11.5 20.25C16.33 20.25 20.25 16.32 20.25 11.5C20.25 6.68 16.33 2.75 11.5 2.75Z" fill="#5A5A5A"></path><path d="M22 22.75C21.81 22.75 21.62 22.68 21.47 22.53L19.47 20.53C19.18 20.24 19.18 19.76 19.47 19.47C19.76 19.18 20.24 19.18 20.53 19.47L22.53 21.47C22.82 21.76 22.82 22.24 22.53 22.53C22.38 22.68 22.19 22.75 22 22.75Z" fill="#5A5A5A"></path></svg>
+                    <!-- Empty / No Results Message -->
+                    <div id="desktopNoResults" class="alireza-no-results hidden py-8 px-4 text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-700 mb-1">نتیجه‌ای یافت نشد</p>
+                        <p class="text-xs text-slate-400">لطفاً عبارت دیگری را امتحان کنید یا املای کلمه را بررسی نمایید.</p>
                     </div>
-                    <!-- Clear Button (Right-aligned) -->
-                    <button 
-                        id="mobileClearBtn"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 scale-75 invisible text-[#707085]/30 hover:text-[#707085]/80 hover:bg-[#FFB3C1] !border-none !outline-none hover:!shadow-none !shadow-none !bg-transparent !p-0"
-                        type="button"
-                    >
-                        <svg aria-hidden="true" class="w-4 h-4" viewBox="0 0 352 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z" fill="currentColor"></path></svg>
-                    </button>
                 </div>
-            </div>
-        </div>
-
-        <!-- Modal Body (Scrollable Results) -->
-        <div class="flex-1 overflow-y-auto p-4 custom-scroll">
-            <!-- Preloader -->
-            <div id="mobileLoader" class="flex justify-center items-center py-20 hidden">
-                <div class="loader-dot w-3 h-3 rounded-full bg-[#FA7993] mx-1.5"></div>
-                <div class="loader-dot w-3 h-3 rounded-full bg-[#FFB3C1] mx-1.5"></div>
-                <div class="loader-dot w-3 h-3 rounded-full bg-[#FCE16D] mx-1.5"></div>
-            </div>
-
-            <!-- Results List -->
-            <div id="mobileResults" class="flex-col gap-4 hidden">
-                <div id="mobileCategoriesWrapper" class="hidden">
-                    <div class="px-2 py-1 text-xs font-bold text-[#707085] mb-2"><?php echo esc_html( $results_header_taxonomies ); ?></div>
-                    <div id="mobileCategories" class="flex flex-wrap gap-2"></div>
-                </div>
-                <div id="mobilePostsWrapper" class="hidden">
-                    <div class="px-2 py-1 text-xs font-bold text-[#707085] mb-2 mt-2"><?php echo esc_html( $results_header_posts ); ?></div>
-                    <div id="mobilePosts" class="flex flex-col gap-3"></div>
-                </div>
-                <div id="mobileNoResults" class="hidden p-4 text-center text-[#707085] text-sm">نتیجه‌ای یافت نشد.</div>
             </div>
         </div>
     </div>
